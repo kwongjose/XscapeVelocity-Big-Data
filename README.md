@@ -1,2 +1,2 @@
 # XscapeVelocity-Big-Data
-Jack Caspers
+John Caspers 
