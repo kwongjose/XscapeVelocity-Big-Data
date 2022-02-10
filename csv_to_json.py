@@ -40,8 +40,8 @@ def rename_columns(row):
     return new_row
 
 def main():
-    csv_file_path = r"C:\\Users\\Michael\\Downloads\\hourly_88101_2021\\hourly_88101_2021.csv"
-    json_file_path = r"C:\\Users\\Michael\\Downloads\\hourly_88101_2021\\hourly_88101_2021.json"
+    csv_file_path = r"file_path.csv"
+    json_file_path = r"file_path.json"
     make_json(csv_file_path, json_file_path)
 
 if __name__ == '__main__':
