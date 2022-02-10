@@ -1,0 +1,20 @@
+{
+	"stateCode": "01",
+	"countyCode": "073",
+	"siteNum": "0023",
+	"poc":  3,
+	"latitude": 33.553056,
+	"longitude": -86.815,
+	"datum": "WGS84",
+	"parameterName": "PM2.5 - Local Conditions",
+	"dateLocal": "2020-01-01",
+	"timeLocal": "00:00",
+	"dateGMT": "2020-01-01",
+	"timeGMT": "06:00",
+	"sampleMeasurement": 3.3,
+	"unitOfMeasure": "Micrograms/cubic meter (LC)",
+	"mdl": 0.1,
+	"uncertainty":  "",
+	"qualifier": "",
+	"dateLastChange": "2021-01-28"
+}
