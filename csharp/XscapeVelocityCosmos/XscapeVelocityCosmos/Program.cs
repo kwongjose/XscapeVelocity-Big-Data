@@ -103,7 +103,7 @@ namespace CosmosGettingStartedTutorial
         private async Task CreateContainerAsync()
         {
             // Create a new container
-            this.container = await this.database.CreateContainerIfNotExistsAsync(containerId, ConfigurationManager.AppSettings["partitionKey"], Convert.ToInt32(ConfigurationManager.AppSettings["throughput"]));
+            this.container = await this.database.CreateContainerIfNotExistsAsync(containerId, Data.idPath, Convert.ToInt32(ConfigurationManager.AppSettings["throughput"]));
             Console.WriteLine("Created Container: {0}\n", this.container.Id);
         }
         // </CreateContainerAsync>
@@ -144,11 +144,14 @@ namespace CosmosGettingStartedTutorial
         // <Data>
         public class Data
         {
-            public string id {get;set;}
+            public const string idPath = "/id";
+
+            [JsonProperty(PropertyName = "id")] // cosmos requires an "id" property, so just make "Id" identify as "id"
+            public string Id {get;set;}
 
             public int stateCode { get; set; }
             public int countyCode { get; set; }
-            public int siteNum { get; set; }
+            public string siteNum { get; set; }
             public int poc { get; set; }
             public float latitude { get; set; }
             public float longitude { get; set; }
@@ -161,7 +164,7 @@ namespace CosmosGettingStartedTutorial
             public float sampleMeasurement { get; set; }
             public string unitOfMeasure { get; set; }
             public float mdl { get; set; }
-            public float uncertainty { get; set; }
+            public string uncertainty { get; set; }
             public string qualifier { get; set; }
             public DateTime dateLastChange { get; set; }
         }
@@ -180,20 +183,20 @@ namespace CosmosGettingStartedTutorial
                 // Should it be data.timeGMT.ToString() for PartitionKey.ctor(string)?
                 // partitionKey was added above from the App.Config
                 tasks.Add(container
-                    .CreateItemAsync(data, new PartitionKey(partitionKey))
+                    .CreateItemAsync(data, new PartitionKey(data.Id))
                     .ContinueWith(taskWithItemResponse =>
                     {
                         // FIXME: verify this is what you want, IsCompletedSuccessfully is a .net core property, which does not seem to be in .net framework
-                        if (taskWithItemResponse.Status == TaskStatus.RanToCompletion)
+                        if (taskWithItemResponse.Status != TaskStatus.RanToCompletion)
                         {
                             AggregateException innerExceptions = taskWithItemResponse.Exception.Flatten();
                             if (innerExceptions.InnerExceptions.FirstOrDefault(innerEx => innerEx is CosmosException) is CosmosException cosmosException)
                             {
-                                Console.WriteLine($"Received {cosmosException.StatusCode} ({cosmosException.Message}).");
+                                Console.WriteLine($"Received {cosmosException.StatusCode} ({cosmosException.Message}).\n");
                             }
                             else
                             {
-                                Console.WriteLine($"Exception {innerExceptions.InnerExceptions.FirstOrDefault()}.");
+                                Console.WriteLine($"Exception {innerExceptions.InnerExceptions.FirstOrDefault()}.\n");
                             }
                         }
                     })
