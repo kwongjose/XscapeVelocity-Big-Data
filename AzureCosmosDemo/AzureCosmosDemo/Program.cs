@@ -12,10 +12,10 @@ namespace todo
     {
 
         /// The Azure Cosmos DB endpoint for running this GetStarted sample.
-        private string EndpointUrl = "https://localhost:8081";
+        private string EndpointUrl = ConfigurationManager.AppSettings.Get("EndpointUri");
 
         /// The primary key for the Azure DocumentDB account.
-        private string PrimaryKey = "C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
+        private string PrimaryKey = ConfigurationManager.AppSettings.Get("PrimaryKey");
 
         // The Cosmos client instance
         private CosmosClient cosmosClient;
@@ -32,27 +32,35 @@ namespace todo
 
         public static async Task Main(string[] args)
         {
-            try
+            if (args.Length == 0 | args == null)
             {
-                Console.WriteLine("Beginning operations...\n");
-                Program p = new Program();
-                await p.GetStartedDemoAsync();
+                Console.WriteLine("args is null");
+            }
+            else
+            {
+                try
+                {
+                    Console.WriteLine("Beginning operations...\n");
+                    Program p = new Program();
+                    await p.GetStartedDemoAsync(args);
 
+                }
+                catch (CosmosException de)
+                {
+                    Exception baseException = de.GetBaseException();
+                    Console.WriteLine("{0} error occurred: {1}", de.StatusCode, de);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine("Error: {0}", e);
+                }
+                finally
+                {
+                    Console.WriteLine("End of demo, press any key to exit.");
+                    Console.ReadKey();
+                }
             }
-            catch (CosmosException de)
-            {
-                Exception baseException = de.GetBaseException();
-                Console.WriteLine("{0} error occurred: {1}", de.StatusCode, de);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("Error: {0}", e);
-            }
-            finally
-            {
-                Console.WriteLine("End of demo, press any key to exit.");
-                Console.ReadKey();
-            }
+            
         }
 
         private async Task CreateDatabaseAsync()
@@ -72,9 +80,9 @@ namespace todo
         }
 
         // <LoadJson>
-        public List<Data> LoadJson()
+        public List<Data> LoadJson(string jsonFile)
         {
-            using (StreamReader r = new StreamReader("../../../data.json"))
+            using (StreamReader r = new StreamReader(jsonFile))
             {
                 string json = r.ReadToEnd();
                 Console.WriteLine(json);
@@ -83,13 +91,11 @@ namespace todo
         }
         // </LoadJson>
 
-        private async Task AddItemsToContainerAsync()
+        private async Task AddItemsToContainerAsync(string jsonFile)
         {
             List<Task> tasks = new List<Task>(10);
             Container container = database.GetContainer(containerId);
-            List<Data> dataToInsert = LoadJson();
-
-            Console.WriteLine(dataToInsert);
+            List<Data> dataToInsert = LoadJson(jsonFile);
 
             try
             {
@@ -98,8 +104,22 @@ namespace todo
                 {
                     tasks.Add(container
                     .CreateItemAsync(data, new PartitionKey(data.siteNum))
+                    .ContinueWith(itemResponse =>
+                    {
+                        if (!itemResponse.IsCompletedSuccessfully)
+                        {
+                            AggregateException innerExceptions = itemResponse.Exception.Flatten();
+                            if (innerExceptions.InnerExceptions.FirstOrDefault(innerEx => innerEx is CosmosException) is CosmosException cosmosException)
+                            {
+                                Console.WriteLine($"Received {cosmosException.StatusCode} ({cosmosException.Message}).");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Exception {innerExceptions.InnerExceptions.FirstOrDefault()}.");
+                            }
+                        }
+                    })
                     );
-                    Console.WriteLine(data);
                     // ItemResponse<Data> dataResponse = await this.container.CreateItemAsync<Data>(data, new PartitionKey(data.siteNum));
                     // Console.WriteLine("Created item in database with id: {0} Operation consumed {1} RUs.\n", dataResponse.Resource.Id, dataResponse.RequestCharge);
                 }
@@ -116,22 +136,22 @@ namespace todo
 
         private async Task QueryItemsAsync()
         {
-            var sqlQueryText = "SELECT * FROM c WHERE c.LastName = 'Andersen'";
+            var sqlQueryText = "SELECT * FROM d WHERE d.id = 'test'";
 
             Console.WriteLine("Running query: {0}\n", sqlQueryText);
 
             QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
-            FeedIterator<Family> queryResultSetIterator = this.container.GetItemQueryIterator<Family>(queryDefinition);
+            FeedIterator<Data> queryResultSetIterator = this.container.GetItemQueryIterator<Data>(queryDefinition);
 
-            List<Family> families = new List<Family>();
+            List<Data> allData = new List<Data>();
 
             while (queryResultSetIterator.HasMoreResults)
             {
-                FeedResponse<Family> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-                foreach (Family family in currentResultSet)
+                FeedResponse<Data> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+                foreach (Data data in currentResultSet)
                 {
-                    families.Add(family);
-                    Console.WriteLine("\tRead {0}\n", family);
+                    allData.Add(data);
+                    Console.WriteLine("\tRead {0}\n", data);
                 }
             }
         }
@@ -147,14 +167,14 @@ namespace todo
             this.cosmosClient.Dispose();
         }
 
-        public async Task GetStartedDemoAsync()
+        public async Task GetStartedDemoAsync(string[] args)
         {
             // Create a new instance of the Cosmos Client
             this.cosmosClient = new CosmosClient(EndpointUrl, PrimaryKey, new CosmosClientOptions() { AllowBulkExecution = true });
             await this.CreateDatabaseAsync();
             await this.CreateContainerAsync();
-            await this.AddItemsToContainerAsync();
-            // await this.QueryItemsAsync();
+            await this.AddItemsToContainerAsync(args[0]);
+            await this.QueryItemsAsync();
             // await this.DeleteDatabaseAndCleanupAsync();
         }
     }

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AzureCosmosDemo": {
+      "commandName": "Project",
+      "commandLineArgs": "../../../data.json"
+    }
+  }
+}
