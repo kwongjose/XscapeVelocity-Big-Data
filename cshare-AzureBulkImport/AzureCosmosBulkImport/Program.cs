@@ -75,14 +75,14 @@ namespace AzureBulkImport
         private async Task CreateContainerAsync()
         {
             // Create a new container
-            this.container = await this.database.CreateContainerIfNotExistsAsync(containerId, "/siteNum");
+            this.container = await this.database.CreateContainerIfNotExistsAsync(containerId, Data.idPath);
             Console.WriteLine("Created Container: {0}\n", this.container.Id);
         }
 
         // <LoadJson>
         public List<Data> LoadJson(string jsonFile)
         {
-            using (StreamReader r = new StreamReader(jsonFile))
+            using (StreamReader r = new StreamReader(ConfigurationManager.AppSettings.Get("jsonFile")))
             {
                 string json = r.ReadToEnd();
                 Console.WriteLine(json);
@@ -103,7 +103,7 @@ namespace AzureBulkImport
                 foreach (Data data in dataToInsert)
                 {
                     tasks.Add(container
-                    .CreateItemAsync(data, new PartitionKey(data.siteNum))
+                    .CreateItemAsync(data, new PartitionKey(data.Id))
                     .ContinueWith(itemResponse =>
                     {
                         if (!itemResponse.IsCompletedSuccessfully)
@@ -174,7 +174,7 @@ namespace AzureBulkImport
             await this.CreateDatabaseAsync();
             await this.CreateContainerAsync();
             await this.AddItemsToContainerAsync(args[0]);
-            await this.QueryItemsAsync();
+            // await this.QueryItemsAsync();
             // await this.DeleteDatabaseAndCleanupAsync();
         }
     }

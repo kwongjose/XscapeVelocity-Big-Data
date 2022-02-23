@@ -6,6 +6,8 @@ namespace AzureBulkImport
     {
         [JsonProperty(PropertyName = "id")]
         public string? Id { get; set; }
+
+        public const string idPath = "/id";
         public string stateCode { get; set; }
         public string countyCode { get; set; }
         public string siteNum { get; set; }
