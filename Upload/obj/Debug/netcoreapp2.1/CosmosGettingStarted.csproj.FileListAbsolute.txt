@@ -1,0 +1,14 @@
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\bin\Debug\netcoreapp2.1\Microsoft.Azure.Cosmos.ServiceInterop.dll
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\bin\Debug\netcoreapp2.1\Cosmos.CRTCompat.dll
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\bin\Debug\netcoreapp2.1\CosmosGettingStarted.dll.config
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\bin\Debug\netcoreapp2.1\CosmosGettingStarted.deps.json
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\bin\Debug\netcoreapp2.1\CosmosGettingStarted.runtimeconfig.json
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\bin\Debug\netcoreapp2.1\CosmosGettingStarted.runtimeconfig.dev.json
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\bin\Debug\netcoreapp2.1\CosmosGettingStarted.dll
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\bin\Debug\netcoreapp2.1\CosmosGettingStarted.pdb
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\obj\Debug\netcoreapp2.1\CosmosGettingStarted.csproj.AssemblyReference.cache
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\obj\Debug\netcoreapp2.1\CosmosGettingStarted.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\obj\Debug\netcoreapp2.1\CosmosGettingStarted.csproj.CoreCompileInputs.cache
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\obj\Debug\netcoreapp2.1\CosmosGettingStarted.dll
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\obj\Debug\netcoreapp2.1\CosmosGettingStarted.pdb
+C:\Users\Michael\Downloads\DocumentDB-Quickstart-DotNet\CosmosGettingStartedTutorial\obj\Debug\netcoreapp2.1\CosmosGettingStarted.genruntimeconfig.cache
