@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.Net;
 using Microsoft.Azure.Cosmos;
+using ChoETL;
 
 namespace AzureBulkImport
 {
@@ -27,8 +28,8 @@ namespace AzureBulkImport
         private Container container;
 
         // The name of the database and container we will create
-        private string databaseId = "DemoDB";
-        private string containerId = "DBContainer";
+        private string databaseId = "mock-airdata";
+        private string containerId = "mock-hourly-dewpoint-data";
 
         public static async Task Main(string[] args)
         {
@@ -71,7 +72,7 @@ namespace AzureBulkImport
         }
 
         /// Create the container if it does not exist. 
-        /// Specifiy "/LastName" as the partition key since we're storing family information, to ensure good distribution of requests and storage.
+        /// Specifiy "/idPath" as the partition key
         private async Task CreateContainerAsync()
         {
             // Create a new container
@@ -87,22 +88,19 @@ namespace AzureBulkImport
                 string json = r.ReadToEnd();
                 Console.WriteLine(json);
                 return JsonConvert.DeserializeObject<List<Data>>(json);
+                // return JsonConvert.DeserializeObject<List<Data>>(r, typeof(List<Data>), null); Something like this instead. 
             }
         }
         // </LoadJson>
 
         private async Task AddItemsToContainerAsync(string jsonFile)
         {
-            List<Task> tasks = new List<Task>(10);
+            List<Task> tasks = new List<Task>();
             Container container = database.GetContainer(containerId);
-            List<Data> dataToInsert = LoadJson(jsonFile);
-
-            try
+            // List<Data> dataToInsert = LoadJson(jsonFile);
+            foreach (var data in new ChoJSONReader<Data>(ConfigurationManager.AppSettings.Get("jsonFile")))
             {
-                // Create an item in the container representing the Andersen family. Note we provide the value of the partition key for this item, which is "Andersen".
-                foreach (Data data in dataToInsert)
-                {
-                    tasks.Add(container
+                tasks.Add(container
                     .CreateItemAsync(data, new PartitionKey(data.Id))
                     .ContinueWith(itemResponse =>
                     {
@@ -120,35 +118,109 @@ namespace AzureBulkImport
                         }
                     })
                     );
-                    // ItemResponse<Data> dataResponse = await this.container.CreateItemAsync<Data>(data, new PartitionKey(data.siteNum));
-                    // Console.WriteLine("Created item in database with id: {0} Operation consumed {1} RUs.\n", dataResponse.Resource.Id, dataResponse.RequestCharge);
-                }
-                await Task.WhenAll(tasks);
-                // ItemResponse<Family> andersenFamilyResponse = await this.container.CreateItemAsync<Family>(andersenFamily, new PartitionKey(andersenFamily.LastName));
-                // Note that after creating the item, we can access the body of the item with the Resource property of the ItemResponse. We can also access the RequestCharge property to see the amount of RUs consumed on this request.
-                // Console.WriteLine("Created item in database with id: {0} Operation consumed {1} RUs.\n", andersenFamilyResponse.Resource.Id, andersenFamilyResponse.RequestCharge);
+
             }
-            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
-            {
-               // Console.WriteLine("Item in database with id: {0} already exists\n", andersenFamily.Id);
-            }
+            await Task.WhenAll(tasks);
+            //try
+            //{
+            //    foreach (Data data in dataToInsert)
+            //    {
+            //        tasks.Add(container
+            //        .CreateItemAsync(data, new PartitionKey(data.Id))
+            //        .ContinueWith(itemResponse =>
+            //        {
+            //            if (!itemResponse.IsCompletedSuccessfully)
+            //            {
+            //                AggregateException innerExceptions = itemResponse.Exception.Flatten();
+            //                if (innerExceptions.InnerExceptions.FirstOrDefault(innerEx => innerEx is CosmosException) is CosmosException cosmosException)
+            //                {
+            //                    Console.WriteLine($"Received {cosmosException.StatusCode} ({cosmosException.Message}).");
+            //                }
+            //                else
+            //                {
+            //                    Console.WriteLine($"Exception {innerExceptions.InnerExceptions.FirstOrDefault()}.");
+            //                }
+            //            }
+            //        })
+            //        );
+            //    }
+            //    await Task.WhenAll(tasks);
+
+            //}
+            //catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+            //{
+
+            //}
         }
 
-        private async Task QueryItemsAsync()
+        private async Task QueryForAverageMeasurementsAsync()
         {
-            var sqlQueryText = "SELECT * FROM d WHERE d.id = 'test'";
+
+            var sqlQueryText = "SELECT AVG(d.sampleMeasurement) FROM d";
 
             Console.WriteLine("Running query: {0}\n", sqlQueryText);
 
             QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
-            FeedIterator<Data> queryResultSetIterator = this.container.GetItemQueryIterator<Data>(queryDefinition);
+            FeedIterator<dynamic> queryResultSetIterator = this.container.GetItemQueryIterator<dynamic>(queryDefinition);
 
-            List<Data> allData = new List<Data>();
+            List<dynamic> allData = new List<dynamic>();
+            Console.WriteLine("\tQuery Iterator {0}\n", queryResultSetIterator);
 
             while (queryResultSetIterator.HasMoreResults)
             {
-                FeedResponse<Data> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-                foreach (Data data in currentResultSet)
+                FeedResponse<dynamic> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+                Console.WriteLine("\tResults {0}\n", currentResultSet);
+                foreach (dynamic data in currentResultSet)
+                {
+                    allData.Add(data);
+                    Console.WriteLine("\tRead {0}\n", data);
+                }
+            }
+        }
+
+        private async Task QueryForMaxMeasurementsAsync()
+        {
+
+            var sqlQueryText = "SELECT MAX(d.sampleMeasurement) FROM d";
+
+            Console.WriteLine("Running query: {0}\n", sqlQueryText);
+
+            QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
+            FeedIterator<dynamic> queryResultSetIterator = this.container.GetItemQueryIterator<dynamic>(queryDefinition);
+
+            List<dynamic> allData = new List<dynamic>();
+            Console.WriteLine("\tQuery Iterator {0}\n", queryResultSetIterator);
+
+            while (queryResultSetIterator.HasMoreResults)
+            {
+                FeedResponse<dynamic> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+                Console.WriteLine("\tResults {0}\n", currentResultSet);
+                foreach (dynamic data in currentResultSet)
+                {
+                    allData.Add(data);
+                    Console.WriteLine("\tRead {0}\n", data);
+                }
+            }
+        }
+
+        private async Task QueryForMinMeasurementsAsync()
+        {
+
+            var sqlQueryText = "SELECT MIN(d.sampleMeasurement) FROM d";
+
+            Console.WriteLine("Running query: {0}\n", sqlQueryText);
+
+            QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
+            FeedIterator<dynamic> queryResultSetIterator = this.container.GetItemQueryIterator<dynamic>(queryDefinition);
+
+            List<dynamic> allData = new List<dynamic>();
+            Console.WriteLine("\tQuery Iterator {0}\n", queryResultSetIterator);
+
+            while (queryResultSetIterator.HasMoreResults)
+            {
+                FeedResponse<dynamic> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+                Console.WriteLine("\tResults {0}\n", currentResultSet);
+                foreach (dynamic data in currentResultSet)
                 {
                     allData.Add(data);
                     Console.WriteLine("\tRead {0}\n", data);
@@ -159,12 +231,25 @@ namespace AzureBulkImport
         private async Task DeleteDatabaseAndCleanupAsync()
         {
             DatabaseResponse databaseResourceResponse = await this.database.DeleteAsync();
-            // Also valid: await this.cosmosClient.Databases["FamilyDatabase"].DeleteAsync();
 
             Console.WriteLine("Deleted Database: {0}\n", this.databaseId);
 
             //Dispose of CosmosClient
             this.cosmosClient.Dispose();
+        }
+
+        public void LoadCSV()
+        {
+            //foreach (dynamic e in new ChoCSVReader(ConfigurationManager.AppSettings.Get("csvFile")).WithFirstLineHeader())
+            //{
+            //    Console.WriteLine(e.StateCode + " " + e.TimeGMT);
+            //}
+            foreach (var e in new ChoJSONReader<Data>(ConfigurationManager.AppSettings.Get("jsonFile")))
+            {
+                Console.WriteLine(e.ToString());
+            }
+                
+
         }
 
         public async Task GetStartedDemoAsync(string[] args)
@@ -174,8 +259,15 @@ namespace AzureBulkImport
             await this.CreateDatabaseAsync();
             await this.CreateContainerAsync();
             await this.AddItemsToContainerAsync(args[0]);
-            // await this.QueryItemsAsync();
+
+            // Queries 
+            //await this.QueryForAverageMeasurementsAsync();
+            //await this.QueryForMaxMeasurementsAsync();
+            //await this.QueryForMinMeasurementsAsync();
+
             // await this.DeleteDatabaseAndCleanupAsync();
+
+            // this.LoadCSV();
         }
     }
 }

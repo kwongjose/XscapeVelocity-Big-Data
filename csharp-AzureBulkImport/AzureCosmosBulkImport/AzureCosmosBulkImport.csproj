@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ChoETL" Version="1.2.1.42" />
+    <PackageReference Include="ChoETL.JSON" Version="1.2.1.42" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.25.0" />
 	  <Content Include="data.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
