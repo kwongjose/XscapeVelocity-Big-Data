@@ -3,7 +3,6 @@
 **/.vs
 **/*.ini
 
-Upload/hourly_RH_DP_2019.csv
-Upload/hourly_RH_DP_2019.json
+Upload/*.csv
+Upload/*.json
 csharp-AzureBulkImport/AzureCosmosBulkImport/hourly_RH_DP_2019.csv
-csharp-AzureBulkImport/AzureCosmosBulkImport/hourly_RH_DP_2019_small.csv

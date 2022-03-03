@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using System.Globalization;
 using System.Configuration;
 using System.Collections.Generic;
 using Newtonsoft.Json;
@@ -27,9 +28,15 @@ namespace AzureBulkImport
         // The container we will create.
         private Container container;
 
-        // The name of the database and container we will create
-        private string databaseId = "mock-airdata";
-        private string containerId = "mock-hourly-dewpoint-data";
+        // The container we will create.
+        private Container hourly_pm_container_azure;
+
+        // The container we will create.
+        private Container hourly_rh_dewpoint_container_azure;
+
+        private string airquality_database = "airquality";
+        private string hourly_rh_dewpoint_container = "hourly-rh-dewpoint";
+        private string hourly_pm_container = "hourly-pm";
 
         public static async Task Main(string[] args)
         {
@@ -43,7 +50,7 @@ namespace AzureBulkImport
                 {
                     Console.WriteLine("Beginning operations...\n");
                     Program p = new Program();
-                    await p.GetStartedDemoAsync(args);
+                    await p.GetStartedDemoAsync();
 
                 }
                 catch (CosmosException de)
@@ -67,38 +74,29 @@ namespace AzureBulkImport
         private async Task CreateDatabaseAsync()
         {
             // Create a new database
-            this.database = await this.cosmosClient.CreateDatabaseIfNotExistsAsync(databaseId);
+            this.database = await this.cosmosClient.CreateDatabaseIfNotExistsAsync(airquality_database);
             Console.WriteLine("Created Database: {0}\n", this.database.Id);
         }
 
         /// Create the container if it does not exist. 
         /// Specifiy "/idPath" as the partition key
-        private async Task CreateContainerAsync()
+        private async Task CreateContainerAsync(string containerId, string idPath, Container container)
         {
-            // Create a new container
-            this.container = await this.database.CreateContainerIfNotExistsAsync(containerId, Data.idPath);
-            Console.WriteLine("Created Container: {0}\n", this.container.Id);
-        }
-
-        // <LoadJson>
-        public List<Data> LoadJson(string jsonFile)
-        {
-            using (StreamReader r = new StreamReader(ConfigurationManager.AppSettings.Get("jsonFile")))
+            // Create a new containerId, Data.idPath
+            ContainerProperties containerProperties = new ContainerProperties()
             {
-                string json = r.ReadToEnd();
-                Console.WriteLine(json);
-                return JsonConvert.DeserializeObject<List<Data>>(json);
-                // return JsonConvert.DeserializeObject<List<Data>>(r, typeof(List<Data>), null); Something like this instead. 
-            }
+                Id = containerId,
+                PartitionKeyPath = idPath,
+            };
+            container = await this.database.CreateContainerIfNotExistsAsync(containerProperties, ThroughputProperties.CreateAutoscaleThroughput(10000));
+            Console.WriteLine("Created Container: {0}\n", container.Id);
         }
-        // </LoadJson>
 
-        private async Task AddItemsToContainerAsync(string jsonFile)
+        private async Task AddItemsToContainerAsyncJSON(string containerId, string jsonFile)
         {
             List<Task> tasks = new List<Task>();
             Container container = database.GetContainer(containerId);
-            // List<Data> dataToInsert = LoadJson(jsonFile);
-            foreach (var data in new ChoJSONReader<Data>(ConfigurationManager.AppSettings.Get("jsonFile")))
+            foreach (var data in new ChoJSONReader<Data>(ConfigurationManager.AppSettings.Get(jsonFile)))
             {
                 tasks.Add(container
                     .CreateItemAsync(data, new PartitionKey(data.Id))
@@ -121,36 +119,58 @@ namespace AzureBulkImport
 
             }
             await Task.WhenAll(tasks);
-            //try
-            //{
-            //    foreach (Data data in dataToInsert)
-            //    {
-            //        tasks.Add(container
-            //        .CreateItemAsync(data, new PartitionKey(data.Id))
-            //        .ContinueWith(itemResponse =>
-            //        {
-            //            if (!itemResponse.IsCompletedSuccessfully)
-            //            {
-            //                AggregateException innerExceptions = itemResponse.Exception.Flatten();
-            //                if (innerExceptions.InnerExceptions.FirstOrDefault(innerEx => innerEx is CosmosException) is CosmosException cosmosException)
-            //                {
-            //                    Console.WriteLine($"Received {cosmosException.StatusCode} ({cosmosException.Message}).");
-            //                }
-            //                else
-            //                {
-            //                    Console.WriteLine($"Exception {innerExceptions.InnerExceptions.FirstOrDefault()}.");
-            //                }
-            //            }
-            //        })
-            //        );
-            //    }
-            //    await Task.WhenAll(tasks);
+        }
 
-            //}
-            //catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
-            //{
+        private async Task AddItemsToContainerAsyncCSV(string containerId, string csvFile)
+        {
+            List<Task> tasks = new List<Task>();
+            Container container = database.GetContainer(containerId);
+            string testDate = "2017-01-10";
+            DateTime exampleDateTime = DateTime.Parse(testDate);
+            foreach (var dataObject in new ChoCSVReader(ConfigurationManager.AppSettings.Get(csvFile)).WithFirstLineHeader())
+            {
+                Data data = new Data();
+                location location = new location();
+                location.type = "Point";
+                location.coordinates = new float[] { float.Parse(dataObject.Longitude), float.Parse(dataObject.Latitude) };
+                data.Id = System.Guid.NewGuid().ToString();
+                data.siteCode = dataObject.StateCode.Replace("\"", "") + dataObject.CountyCode.Replace("\"", "") + dataObject.SiteNum.Replace("\"", "");
+                data.location = location;
+                data.poc = int.Parse(dataObject.POC);
+                data.datum = dataObject.Datum.Replace("\"", "");
+                data.parameterName = dataObject.ParameterName.Replace("\"", "");
+                data.dateLocal = DateTime.ParseExact(dataObject.DateLocal.Replace("\"", ""), "yyyy-MM-dd", null);
+                data.timeLocal = DateTime.Parse(dataObject.TimeLocal.Replace("\"", ""));
+                data.dateGMT = DateTime.Parse(dataObject.DateGMT.Replace("\"", ""));
+                data.timeGMT = DateTime.Parse(dataObject.TimeGMT.Replace("\"", ""));
+                data.sampleMeasurement = float.Parse(dataObject.SampleMeasurement);
+                data.unitOfMeasure = dataObject.UnitsOfMeasure.Replace("\"", "");
+                data.mdl = float.Parse(dataObject.MDL);
+                data.uncertainty = dataObject.Uncertainty.Replace("\"", "");
+                data.qualifier = dataObject.Qualifier.Replace("\"", "");
+                data.dateLastChange = DateTime.Parse(dataObject.DateOfLastChange.Replace("\"", ""));
+                tasks.Add(container
+                    .CreateItemAsync(data, new PartitionKey(data.Id))
+                    .ContinueWith(itemResponse =>
+                    {
+                        if (!itemResponse.IsCompletedSuccessfully)
+                        {
+                            AggregateException innerExceptions = itemResponse.Exception.Flatten();
+                            if (innerExceptions.InnerExceptions.FirstOrDefault(innerEx => innerEx is CosmosException) is CosmosException cosmosException)
+                            {
+                                Console.WriteLine($"Received {cosmosException.StatusCode} ({cosmosException.Message}).");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Exception {innerExceptions.InnerExceptions.FirstOrDefault()}.");
+                            }
+                        }
+                    })
+                    );
 
-            //}
+            }
+            await Task.WhenAll(tasks);
+
         }
 
         private async Task QueryForAverageMeasurementsAsync()
@@ -232,33 +252,48 @@ namespace AzureBulkImport
         {
             DatabaseResponse databaseResourceResponse = await this.database.DeleteAsync();
 
-            Console.WriteLine("Deleted Database: {0}\n", this.databaseId);
+            Console.WriteLine("Deleted Database: {0}\n", this.airquality_database);
 
             //Dispose of CosmosClient
             this.cosmosClient.Dispose();
         }
 
-        public void LoadCSV()
-        {
-            //foreach (dynamic e in new ChoCSVReader(ConfigurationManager.AppSettings.Get("csvFile")).WithFirstLineHeader())
-            //{
-            //    Console.WriteLine(e.StateCode + " " + e.TimeGMT);
-            //}
-            foreach (var e in new ChoJSONReader<Data>(ConfigurationManager.AppSettings.Get("jsonFile")))
-            {
-                Console.WriteLine(e.ToString());
-            }
-                
+        
 
-        }
-
-        public async Task GetStartedDemoAsync(string[] args)
+        public async Task GetStartedDemoAsync()
         {
             // Create a new instance of the Cosmos Client
             this.cosmosClient = new CosmosClient(EndpointUrl, PrimaryKey, new CosmosClientOptions() { AllowBulkExecution = true });
             await this.CreateDatabaseAsync();
-            await this.CreateContainerAsync();
-            await this.AddItemsToContainerAsync(args[0]);
+            await this.CreateContainerAsync(this.hourly_pm_container, Data.idPath, this.hourly_pm_container_azure);
+            await this.CreateContainerAsync(this.hourly_rh_dewpoint_container, Data.idPath, this.hourly_rh_dewpoint_container_azure);
+
+            //ONLY USE JSON OR CSV
+
+            // Adding all rh dewpoint data JSON
+            //await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2017_json_small");
+            //await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2018_json_small");
+            //await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2019_json_small");
+            //await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2020_json_small");
+
+            // Adding all pm data JSON
+            //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2017_json_small");
+            //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2018_json_small");
+            //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2019_json_small");
+            //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2020_json_small");
+
+
+            // Adding all pm data CSV
+            await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2017_csv");
+            await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2018_csv");
+            await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2019_csv");
+            await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2020_csv");
+
+            // Adding all rh dewpoint data CSV
+            await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2017_csv");
+            await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2018_csv");
+            await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2019_csv");
+            await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2020_csv");
 
             // Queries 
             //await this.QueryForAverageMeasurementsAsync();
