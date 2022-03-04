@@ -88,8 +88,8 @@ namespace AzureBulkImport
                 Id = containerId,
                 PartitionKeyPath = idPath,
             };
-            container = await this.database.CreateContainerIfNotExistsAsync(containerProperties, ThroughputProperties.CreateAutoscaleThroughput(10000));
-            Console.WriteLine("Created Container: {0}\n", container.Id);
+            this.container = await this.database.CreateContainerIfNotExistsAsync(containerProperties, ThroughputProperties.CreateAutoscaleThroughput(10000));
+            Console.WriteLine("Created Container: {0}\n", this.container.Id);
         }
 
         private async Task AddItemsToContainerAsyncJSON(string containerId, string jsonFile)
@@ -166,11 +166,39 @@ namespace AzureBulkImport
                             }
                         }
                     })
-                    );
-
+                );
             }
             await Task.WhenAll(tasks);
+        }
 
+        private async Task AddItemsToContainerAsyncCSVStandard(string containerId, string csvFile)
+        {
+            List<Task> tasks = new List<Task>();
+            Container container = database.GetContainer(containerId);
+            foreach (var dataObject in new ChoCSVReader(ConfigurationManager.AppSettings.Get(csvFile)).WithFirstLineHeader())
+            {
+                Data data = new Data();
+                location location = new location();
+                location.type = "Point";
+                location.coordinates = new float[] { float.Parse(dataObject.Longitude), float.Parse(dataObject.Latitude) };
+                data.Id = System.Guid.NewGuid().ToString();
+                data.siteCode = dataObject.StateCode.Replace("\"", "") + dataObject.CountyCode.Replace("\"", "") + dataObject.SiteNum.Replace("\"", "");
+                data.location = location;
+                data.poc = int.Parse(dataObject.POC);
+                data.datum = dataObject.Datum.Replace("\"", "");
+                data.parameterName = dataObject.ParameterName.Replace("\"", "");
+                data.dateLocal = DateTime.ParseExact(dataObject.DateLocal.Replace("\"", ""), "yyyy-MM-dd", null);
+                data.timeLocal = DateTime.Parse(dataObject.TimeLocal.Replace("\"", ""));
+                data.dateGMT = DateTime.Parse(dataObject.DateGMT.Replace("\"", ""));
+                data.timeGMT = DateTime.Parse(dataObject.TimeGMT.Replace("\"", ""));
+                data.sampleMeasurement = float.Parse(dataObject.SampleMeasurement);
+                data.unitOfMeasure = dataObject.UnitsOfMeasure.Replace("\"", "");
+                data.mdl = float.Parse(dataObject.MDL);
+                data.uncertainty = dataObject.Uncertainty.Replace("\"", "");
+                data.qualifier = dataObject.Qualifier.Replace("\"", "");
+                data.dateLastChange = DateTime.Parse(dataObject.DateOfLastChange.Replace("\"", ""));
+                var response = await container.CreateItemAsync(data, new PartitionKey(data.Id));
+            }            
         }
 
         private async Task QueryForAverageMeasurementsAsync()
@@ -198,11 +226,11 @@ namespace AzureBulkImport
             }
         }
 
-        private async Task QueryForMaxMeasurementsAsync()
+        private async Task QueryForMaxMeasurementsAsync(Container container)
         {
 
-            var sqlQueryText = "SELECT MAX(d.sampleMeasurement) FROM d";
-
+            // var sqlQueryText = "SELECT DateTimePart('year', c.dateGMT) , AVG(c.sampleMeasurement) FROM c GROUP BY DateTimePart('year', c.dateGMT)";
+            var sqlQueryText = "SELECT MIN(d.sampleMeasurement) FROM d";
             Console.WriteLine("Running query: {0}\n", sqlQueryText);
 
             QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
@@ -265,39 +293,41 @@ namespace AzureBulkImport
             // Create a new instance of the Cosmos Client
             this.cosmosClient = new CosmosClient(EndpointUrl, PrimaryKey, new CosmosClientOptions() { AllowBulkExecution = true });
             await this.CreateDatabaseAsync();
-            await this.CreateContainerAsync(this.hourly_pm_container, Data.idPath, this.hourly_pm_container_azure);
+            await this.CreateContainerAsync(this.hourly_pm_container, Data.idPath, hourly_pm_container_azure);
             await this.CreateContainerAsync(this.hourly_rh_dewpoint_container, Data.idPath, this.hourly_rh_dewpoint_container_azure);
 
             //ONLY USE JSON OR CSV
 
             // Adding all rh dewpoint data JSON
-            //await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2017_json_small");
-            //await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2018_json_small");
-            //await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2019_json_small");
-            //await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2020_json_small");
+            // await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2017_json_small");
+            // await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2018_json_small");
+            // await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2019_json_small");
+            // await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2020_json_small");
 
             // Adding all pm data JSON
-            //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2017_json_small");
+            // await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2017_json_small");
             //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2018_json_small");
             //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2019_json_small");
             //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2020_json_small");
 
 
             // Adding all pm data CSV
-            await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2017_csv");
-            await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2018_csv");
-            await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2019_csv");
-            await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2020_csv");
+            //await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2017_csv");
+            //await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2018_csv");
+            //await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2019_csv");
+            //await this.AddItemsToContainerAsyncCSV(this.hourly_pm_container, "hourly_pm_data_2020_csv");
 
             // Adding all rh dewpoint data CSV
-            await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2017_csv");
-            await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2018_csv");
-            await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2019_csv");
-            await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2020_csv");
+            //await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2017_csv");
+            //await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2018_csv");
+            //await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2019_csv");
+            //await this.AddItemsToContainerAsyncCSV(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2020_csv");
+
+            // await this.AddItemsToContainerAsyncCSVStandard(this.hourly_pm_container, "hourly_pm_data_2017_csv");
 
             // Queries 
             //await this.QueryForAverageMeasurementsAsync();
-            //await this.QueryForMaxMeasurementsAsync();
+            await this.QueryForMaxMeasurementsAsync(this.hourly_rh_dewpoint_container_azure);
             //await this.QueryForMinMeasurementsAsync();
 
             // await this.DeleteDatabaseAndCleanupAsync();
