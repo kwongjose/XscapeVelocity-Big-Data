@@ -8,8 +8,7 @@ namespace AzureBulkImport
     public class Data
     {
         [JsonProperty(PropertyName = "id")]
-        [ChoIgnoreMember]
-        public string? Id { get; set; } = System.Guid.NewGuid().ToString();
+        public string? Id { get; set; }
 
         public const string idPath = "/id";
         public string siteCode { get; set; }
