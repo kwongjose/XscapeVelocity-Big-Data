@@ -120,7 +120,7 @@ bad_locations = {}
 
 
 def merge_rh_row(row: Dict[str, Any], out_data: Dict[str, Any]):
-    """Merge one RH row into output"""
+    """Merge one RH row into output only if PM measurement exists"""
     date_time = row["dateTimeGMT"]
     site_code = row["siteCode"]
     location = row["location"]
@@ -160,7 +160,9 @@ def store_rh_data(rh_data: List[Dict[str, Any]], out_data: Dict[str, Any]):
         return
     date_time = rh_data[0]["dateTimeGMT"]
     while rh_data:
-        if rh_data[0]["dateTimeGMT"] != date_time:
+        if rh_data[0]["dateTimeGMT"] != date_time or not out_data.get(
+                rh_data[0]["dateTimeGMT"]
+        ):
             break
         row = rh_data.pop(0)
         merge_rh_row(normalize_row(row), out_data)
@@ -193,7 +195,16 @@ def normalize_data(pm_reader: DictReader, rh_reader: DictReader, out_fh: TextIO)
     out_fh.write("[")
     while True:
         read_data_block(pm_reader, pm_data)
+        if not pm_data:
+            break
+        pm_date_time = pm_data[0]["dateTimeGMT"]
         read_data_block(rh_reader, rh_data)
+        # align rh data to pm
+        while rh_data and rh_data[0]["dateTimeGMT"] < pm_date_time:
+            last_row = rh_data[-1]
+            rh_data.clear()
+            rh_data.append(last_row)
+            read_data_block(rh_reader, rh_data)
         out_data = merge_data(pm_data, rh_data)
         if not out_data:
             break
