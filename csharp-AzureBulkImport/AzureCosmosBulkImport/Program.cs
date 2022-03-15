@@ -276,6 +276,51 @@ namespace AzureBulkImport
             }
         }
 
+        private async Task<List<dynamic>> RunQuery(Container c, string sqlQueryText)
+        {
+
+            Console.WriteLine("Running query: {0}\n", sqlQueryText);
+
+            QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
+            FeedIterator<dynamic> queryResultSetIterator = this.container.GetItemQueryIterator<dynamic>(queryDefinition);
+
+            List<dynamic> allData = new List<dynamic>();
+            Console.WriteLine("\tQuery Iterator {0}\n", queryResultSetIterator);
+
+            while (queryResultSetIterator.HasMoreResults)
+            {
+                FeedResponse<dynamic> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+                Console.WriteLine("\tResults {0}\n", currentResultSet);
+                foreach (dynamic data in currentResultSet)
+                {
+                    allData.Add(data);
+                    Console.WriteLine("\tRead {0}\n", data);
+                }
+            }
+            return allData;
+        }
+
+        private async Task<List<dynamic>> RunQueryWithParams(Container c, QueryDefinition queryDefinition)
+        {
+            Console.WriteLine("Running query: {0}\n");
+
+            FeedIterator<dynamic> queryResultSetIterator = this.container.GetItemQueryIterator<dynamic>(queryDefinition);
+
+            List<dynamic> allData = new List<dynamic>();
+            Console.WriteLine("\tQuery Iterator {0}\n", queryResultSetIterator);
+
+            while (queryResultSetIterator.HasMoreResults)
+            {
+                FeedResponse<dynamic> currentResultSet = await queryResultSetIterator.ReadNextAsync();
+                Console.WriteLine("\tResults {0}\n", currentResultSet);
+                foreach (dynamic data in currentResultSet)
+                {
+                    allData.Add(data);
+                    Console.WriteLine("\tRead {0}\n", data);
+                }
+            }
+            return allData;
+        }
         private async Task DeleteDatabaseAndCleanupAsync()
         {
             DatabaseResponse databaseResourceResponse = await this.database.DeleteAsync();
@@ -325,14 +370,100 @@ namespace AzureBulkImport
 
             // await this.AddItemsToContainerAsyncCSVStandard(this.hourly_pm_container, "hourly_pm_data_2017_csv");
 
-            // Queries 
+            //Test Queries 
             //await this.QueryForAverageMeasurementsAsync();
-            await this.QueryForMaxMeasurementsAsync(this.hourly_rh_dewpoint_container_azure);
+            //await this.QueryForMaxMeasurementsAsync(this.hourly_rh_dewpoint_container_azure);
             //await this.QueryForMinMeasurementsAsync();
+
+            //Easy Queries
+            Query q = new Query();
+            //await this.RunQuery(this.hourly_rh_dewpoint_container_azure, q.MinMaxBySite);
+            //await this.RunQuery(q.AnnualPMAverage);
+            //await this.RunQuery(q.PrePostCovidDifference);
+            //await this.RunQuery(this.hourly_rh_dewpoint_container_azure, q.UndefinedOrNullData);
+            //await this.RunQuery(this.hourly_rh_dewpoint_container_azure, q.NegativeMeasurements);
+            //await this.RunQuery(this.hourly_rh_dewpoint_container_azure, q.RepeatedMeasurements);
+            //await this.RunQuery(this.hourly_rh_dewpoint_container_azure, q.minSampleMeasurement);
+
+            //await this.RunQuery(this.hourly_rh_dewpoint_container_azure, q.MedianSampleMeasurement);
+            await this.GetMedianPerYearQuerySet("2020-01-01", "2020-12-31");
+
 
             // await this.DeleteDatabaseAndCleanupAsync();
 
             // this.LoadCSV();
+        }
+
+        public async Task GetMedianPerYearQuerySet(string startDate, string endDate)
+        {
+            this.cosmosClient = new CosmosClient(EndpointUrl, PrimaryKey, new CosmosClientOptions() { AllowBulkExecution = true });
+            await this.CreateDatabaseAsync();
+            await this.CreateContainerAsync(this.hourly_pm_container, Data.idPath, hourly_pm_container_azure);
+            await this.CreateContainerAsync(this.hourly_rh_dewpoint_container, Data.idPath, this.hourly_rh_dewpoint_container_azure);
+
+            Query q = new Query();
+
+            //string the queries together
+            //first, get the # of "rows"/objects for the TOP command)
+            Console.WriteLine(startDate);
+            Console.WriteLine(endDate);
+            QueryDefinition queryDefinition = new QueryDefinition(q.totalEntryCountByDate)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate);
+            var entryMidpoint = (await this.RunQueryWithParams(this.hourly_rh_dewpoint_container_azure, queryDefinition));
+            var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(entryMidpoint[0].ToString());
+            Console.WriteLine("total number of entries for " + startDate + " , ending " + endDate + ": " + jsonResult);
+            //for funsies
+            Console.WriteLine("without above zero limitation ");
+            QueryDefinition tempQuery = new QueryDefinition(q.totalEntryCountByDateNoAboveZero)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate);
+            var entryMidpoint1 = (await this.RunQueryWithParams(this.hourly_rh_dewpoint_container_azure, tempQuery));
+            var jsonResult1 = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(entryMidpoint1[0].ToString());
+            Console.WriteLine("total number of entries for " + startDate + " , ending " + endDate + ": " + jsonResult1);
+
+            if (jsonResult["$1"]%2 == 0) //even # of objects
+            {
+                var midPoint1 = (jsonResult["$1"] / 2) + 1;
+                var midPoint2 = (jsonResult["$1"] / 2) - 1;
+
+                queryDefinition = new QueryDefinition(q.getSimpleMedian)
+                    .WithParameter("@rowNum", midPoint1)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate);
+                var result1 = await this.RunQueryWithParams(this.hourly_rh_dewpoint_container_azure, queryDefinition);
+
+                queryDefinition = new QueryDefinition(q.getMedianLowerValue)
+                    .WithParameter("@rowNum", midPoint2)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate);
+                var result2 = await this.RunQueryWithParams(this.hourly_rh_dewpoint_container_azure, queryDefinition);
+
+                string stResult1 = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result1[0].ToString());
+                string stResult2 = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result2[0].ToString());
+                Console.WriteLine(stResult1);
+                Console.WriteLine(stResult2);
+
+
+
+            } else // odd # of objects
+            {
+                var midPoint = jsonResult["$1"] / 2 + 1; //the middle object, for reasons i dont understand it rounds down
+                Console.WriteLine("midpoint in else clause: " + midPoint);
+
+                //simplified since we dont need to average 2 numbers
+                
+               queryDefinition = new QueryDefinition(q.getSimpleMedian)
+                    .WithParameter("@rowNum", midPoint)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate);
+               var result = await this.RunQueryWithParams(this.hourly_rh_dewpoint_container_azure, queryDefinition);
+                Console.WriteLine(result);
+
+            }
+            
+            
+            
         }
     }
 }
