@@ -273,13 +273,19 @@ namespace AzureBulkImport
             //ONLY USE JSON OR CSV
 
             // Adding all rh dewpoint data JSON
-            // await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2017_json_small");
-            // await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2018_json_small");
-            // await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2019_json_small");
-            // await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2020_json_small");
+            Console.WriteLine("adding rhdp 2017");
+           //  await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2017_json");
+            
+            //TODO: EMILY IMPORT 2018-2020
+            Console.WriteLine("adding rhdp 2018");
+            await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2018_json");
+            Console.WriteLine("adding rhdp 2019");
+            await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2019_json");
+            Console.WriteLine("adding rhdp 2020");
+            await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2020_json");
 
             // Adding all pm data JSON
-            // await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2017_json_small");
+            //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2017_json_small");
             //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2018_json_small");
             //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2019_json_small");
             //await this.AddItemsToContainerAsyncJSON(this.hourly_pm_container, "hourly_pm_data_2020_json_small");
@@ -316,21 +322,24 @@ namespace AzureBulkImport
 
             //await this.RunQuery(this.hourly_rh_dewpoint_container_azure, q.MedianSampleMeasurement);
 
-            
+
             //Use these for batch processing yearly metrics
-            string[] dateArray = new string[8] { "2017-01-01", "2017-12-31", "2018-01-01", "2018-12-31", "2019-01-01", "2019-12-31", "2020-01-01", "2020-12-31" };
-            for (int i = 0; i < dateArray.Length; i++)
-            {
-                // Get Median PM2.5 Data Per Year
-                await this.GetMedianPerYearQuerySet(dateArray[i], dateArray[i+1]);
-                await this.GetMinMeasurePerYearQuerySet(dateArray[i], dateArray[i + 1]);
-                await this.GetMaxMeasurePerYearQuerySet(dateArray[i], dateArray[i + 1]);
-                //skip 1 because every other is an end date
-                i++;
-            }
+            /*            string[] dateArray = new string[8] { "2017-01-01", "2017-12-31", "2018-01-01", "2018-12-31", "2019-01-01", "2019-12-31", "2020-01-01", "2020-12-31" };
+                        for (int i = 0; i < dateArray.Length; i++)
+                        {
+                            // Get Median PM2.5 Data Per Year
+                            await this.GetMedianPerYearQuerySet(dateArray[i], dateArray[i+1]);
+                            await this.GetMinMeasurePerYearQuerySet(dateArray[i], dateArray[i + 1]);
+                            await this.GetMaxMeasurePerYearQuerySet(dateArray[i], dateArray[i + 1]);
+                            //skip 1 because every other is an end date
+                            i++;
+                        }*/
 
             //Pre-Post Covid Median Measurements
-            await this.GetDifferenceSinceCovid();
+            //await this.GetDifferenceSinceCovid();
+
+            //Invalid Measurements
+            await this.GetNumOfInvalidMeasures();
 
 
             //Use these for testing, comment and uncomment to only run certain years at a time
@@ -502,6 +511,44 @@ namespace AzureBulkImport
             Console.WriteLine("Pre-Covid Mean PM2.5 Read is " + preCovidMean);
             Console.WriteLine("Post-Covid Mean PM2.5 Read is " + postCovidMean);
             Console.WriteLine("The difference in PM2.5 Read data is " + diffMean);
+        }
+
+        public async Task GetNumOfInvalidMeasures()
+        {
+            await this.InvalidPM();
+            await this.InvalidRHDP("Relative Humidity");
+            await this.InvalidRHDP("Dew Point");
+        }
+
+        private async Task InvalidPM() 
+        {
+            Container pmContainer = await this.CreateContainerAsync(this.hourly_pm_container, Data.idPath, hourly_pm_container_azure);
+
+            Query q = new Query();
+
+            PrintParams(new string[1] { "" + 0.0 });
+            QueryDefinition queryDefinition = new QueryDefinition(q.countOccurencesOfMeasurementLessThan)
+                    .WithParameter("@measure", 0.0);
+            var result = await this.RunQueryWithParams(pmContainer, queryDefinition);
+            var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result[0].ToString());
+            double occ = jsonResult["numOfOccurences"];
+
+            Console.WriteLine("Number of invalid PM2.5 Reads: " + occ);
+        }
+
+        private async Task InvalidRHDP(string type)
+        {
+            Container rhContainer = await this.CreateContainerAsync(this.hourly_rh_dewpoint_container, Data.idPath, this.hourly_rh_dewpoint_container_azure);
+            Query q = new Query();
+            PrintParams(new string[2] { "" + 0.0, type });
+            QueryDefinition queryDefinition = new QueryDefinition(q.countOccurencesOfMeasurementLessThan)
+                    .WithParameter("@measure", 0.0)
+                    .WithParameter("@typeOfMeasure", type);
+            var result = await this.RunQueryWithParams(rhContainer, queryDefinition);
+            var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result[0].ToString());
+            double occ = jsonResult["numOfOccurences"];
+
+            Console.WriteLine("Number of invalid "+type+" Reads: " + occ);
         }
         private double FindHighestValue(List<dynamic> result)
         {

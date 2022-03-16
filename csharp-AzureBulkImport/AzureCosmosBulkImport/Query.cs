@@ -88,4 +88,14 @@ public class Query
         SELECT AVG(c.sampleMeasurement) as average
         FROM c
         WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate)";
+
+    public string countOccurencesOfMeasurementLessThan { get; } = @"
+        SELECT COUNT(c.sampleMeasurement) as numOfOccurences
+        FROM c
+        WHERE c.sampleMeasurement < @measure";
+
+    public string countOccurencesOfMeasurementLessThanRHDP { get; } = @"
+        SELECT COUNT(c.sampleMeasurement) as numOfOccurences
+        FROM c
+        WHERE c.sampleMeasurement < @measure AND (c.parameterName = @typeOfMeasure)";
 }
