@@ -1,19 +1,19 @@
 ﻿using Newtonsoft.Json;
+using ChoETL;
+
 
 namespace AzureBulkImport
 {
+    [ChoCSVFileHeader]
     public class Data
     {
         [JsonProperty(PropertyName = "id")]
         public string? Id { get; set; }
 
         public const string idPath = "/id";
-        public string stateCode { get; set; }
-        public string countyCode { get; set; }
-        public string siteNum { get; set; }
+        public string siteCode { get; set; }
         public int poc { get; set; }
-        public float latitude { get; set; }
-        public float longitude { get; set; }
+        public location location { get; set; }
         public string datum { get; set; }
         public string parameterName { get; set; }
         public DateTime dateLocal { get; set; }
@@ -31,6 +31,12 @@ namespace AzureBulkImport
         {
             return JsonConvert.SerializeObject(this);
         }
+    }
+
+    public class location
+    {
+        public string type { get; set; }
+        public float[] coordinates { get; set; }
     }
 
 }

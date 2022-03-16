@@ -8,9 +8,78 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="hourly_pm_2017_small.csv" />
+    <None Remove="hourly_pm_2017_small.json" />
+    <None Remove="hourly_pm_2018_small.csv" />
+    <None Remove="hourly_pm_2018_small.json" />
+    <None Remove="hourly_pm_2019_small.csv" />
+    <None Remove="hourly_pm_2019_small.json" />
+    <None Remove="hourly_pm_2020_small.csv" />
+    <None Remove="hourly_pm_2020_small.json" />
+    <None Remove="hourly_rh_dp_2017_small.csv" />
+    <None Remove="hourly_rh_dp_2017_small.json" />
+    <None Remove="hourly_rh_dp_2018_small.csv" />
+    <None Remove="hourly_rh_dp_2018_small.json" />
+    <None Remove="hourly_rh_dp_2019_small.csv" />
+    <None Remove="hourly_rh_dp_2019_small.json" />
+    <None Remove="hourly_rh_dp_2020_small.csv" />
+    <None Remove="hourly_rh_dp_2020_small.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ChoETL" Version="1.2.1.42" />
+    <PackageReference Include="ChoETL.JSON" Version="1.2.1.42" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.25.0" />
 	  <Content Include="data.json">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_pm_2017_small.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_pm_2017_small.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_pm_2018_small.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_pm_2018_small.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_pm_2019_small.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_pm_2019_small.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_pm_2020_small.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_pm_2020_small.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_rh_dp_2017_small.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_rh_dp_2017_small.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_rh_dp_2018_small.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_rh_dp_2018_small.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_rh_dp_2019_small.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_rh_dp_2019_small.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_rh_dp_2020_small.csv">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="hourly_rh_dp_2020_small.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
   </ItemGroup>
 

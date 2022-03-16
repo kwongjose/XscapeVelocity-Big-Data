@@ -1,0 +1,484 @@
+[{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "00:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "06:00",
+    "sampleMeasurement": "-0.6",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "7487a218-301f-477d-9799-5d375eaf4df3"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "01:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "07:00",
+    "sampleMeasurement": "0.1",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "dfe6abf8-3608-40f5-ac6d-545a2f49fb2d"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "02:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "08:00",
+    "sampleMeasurement": "3.1",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "77f3816b-35db-45cf-b555-6bafd38fc1ef"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "03:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "09:00",
+    "sampleMeasurement": "5.6",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "ac45fa6c-34ee-472f-b695-04822b33867c"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "04:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "10:00",
+    "sampleMeasurement": "2.6",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "69a7522f-b6d4-47db-9e88-2fb21f8c69b8"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "05:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "11:00",
+    "sampleMeasurement": "5.9",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "4a43ec61-7a82-4fb6-9866-a0d635d79d89"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "06:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "12:00",
+    "sampleMeasurement": "3.1",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "6f92b853-1405-42b1-91c2-99e32546baaf"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "07:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "13:00",
+    "sampleMeasurement": "5.3",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "246ee121-f903-4a89-a789-3c8c203d7f31"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "08:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "14:00",
+    "sampleMeasurement": "7.5",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "5a3aca28-d59c-4c56-8eb8-d7e36847ea0d"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "09:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "15:00",
+    "sampleMeasurement": "4.1",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "284c2b60-5e5c-42d0-9afa-e602c91ce452"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "10:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "16:00",
+    "sampleMeasurement": "10.4",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "4b6cbf74-df81-4e2d-846b-51f1c2592c81"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "11:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "17:00",
+    "sampleMeasurement": "3.2",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "66be4884-8586-4970-b0a6-bd1c211853e4"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "12:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "18:00",
+    "sampleMeasurement": "4.7",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "b1409173-57b2-498a-829c-f6c607bda4f6"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "13:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "19:00",
+    "sampleMeasurement": "4.7",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "163cfcc0-6844-4815-8f6e-e621e1801dcd"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "14:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "20:00",
+    "sampleMeasurement": "5.9",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "ff72a740-e655-4dc5-8c59-1a9da2f9c139"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "15:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "21:00",
+    "sampleMeasurement": "6.1",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "7ac7d9e2-34dd-42b0-b42d-5b218a6528fe"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "16:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "22:00",
+    "sampleMeasurement": "0.1",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "b04df11c-af84-4db0-b986-ef05b96de36c"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "17:00",
+    "dateGMT": "2017-01-03",
+    "timeGMT": "23:00",
+    "sampleMeasurement": "3.9",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "2b81472a-6b30-4c5f-a356-e95e11199a66"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "18:00",
+    "dateGMT": "2017-01-04",
+    "timeGMT": "00:00",
+    "sampleMeasurement": "7.8",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "48c39999-72c2-473c-934d-70743d0a1b2c"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "19:00",
+    "dateGMT": "2017-01-04",
+    "timeGMT": "01:00",
+    "sampleMeasurement": "7.4",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "7ddf17a2-b612-419b-9d78-7b6d2f547a8a"
+},{
+    "poc": "3",
+    "datum": "WGS84",
+    "parameterName": "PM2.5 - Local Conditions",
+    "dateLocal": "2017-01-03",
+    "timeLocal": "20:00",
+    "dateGMT": "2017-01-04",
+    "timeGMT": "02:00",
+    "sampleMeasurement": "17.6",
+    "unitOfMeasure": "Micrograms/cubic meter (LC)",
+    "mdl": "2",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2017-04-19",
+    "siteCode": "01-073-0023",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-86.815",
+            "33.553056"
+        ]
+    },
+    "id": "a85aa10d-54c0-4ced-b3e4-b7826b0cb207"
+}]
