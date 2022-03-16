@@ -74,9 +74,13 @@ public class Query
         WHERE c.sampleMeasurement >= 0.0 AND  (c.dateGMT BETWEEN @startDate AND @endDate)
         ORDER BY c.sampleMeasurement DESC";
 
-    //TODO: DELETE ME
-    public string totalEntryCountByDateNoAboveZero { get; } = @"
-        SELECT COUNT(c.id) 
-        FROM c 
+    public string minSampleMeasurementByYear { get; } = @"
+        SELECT MIN(c.sampleMeasurement) as minMeasure
+        FROM c
+        WHERE c.dateGMT BETWEEN @startDate AND @endDate";
+
+    public string maxSampleMeasurementByYear { get; } = @"
+        SELECT MAX(c.sampleMeasurement) as maxMeasure
+        FROM c
         WHERE c.dateGMT BETWEEN @startDate AND @endDate";
 }

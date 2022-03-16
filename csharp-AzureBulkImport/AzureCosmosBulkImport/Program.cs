@@ -392,11 +392,24 @@ namespace AzureBulkImport
 
             //await this.RunQuery(this.hourly_rh_dewpoint_container_azure, q.MedianSampleMeasurement);
 
-            // Get Median PM2.5 Data Per Year
-            await this.GetMedianPerYearQuerySet("2017-01-01", "2017-12-31");
-            await this.GetMedianPerYearQuerySet("2018-01-01", "2018-12-31");
-            await this.GetMedianPerYearQuerySet("2019-01-01", "2019-12-31");
-            await this.GetMedianPerYearQuerySet("2020-01-01", "2020-12-31");
+            
+            //Use these for batch processing yearly metrics
+            string[] dateArray = new string[8] { "2017-01-01", "2017-12-31", "2018-01-01", "2018-12-31", "2019-01-01", "2019-12-31", "2020-01-01", "2020-12-31" };
+            for (int i = 0; i < dateArray.Length; i++)
+            {
+                // Get Median PM2.5 Data Per Year
+                await this.GetMedianPerYearQuerySet(dateArray[i], dateArray[i+1]);
+                await this.GetMinMeasurePerYearQuerySet(dateArray[i], dateArray[i + 1]);
+                await this.GetMaxMeasurePerYearQuerySet(dateArray[i], dateArray[i + 1]);
+                //skip 1 because every other is an end date
+                i++;
+            }
+
+            //Use these for testing, comment and uncomment to only run certain years at a time
+            //await this.GetMedianPerYearQuerySet("2017-01-01", "2017-12-31");
+            //await this.GetMedianPerYearQuerySet("2018-01-01", "2018-12-31");
+            //await this.GetMedianPerYearQuerySet("2019-01-01", "2019-12-31");
+            //await this.GetMedianPerYearQuerySet("2020-01-01", "2020-12-31");
 
 
             // await this.DeleteDatabaseAndCleanupAsync();
@@ -479,6 +492,40 @@ namespace AzureBulkImport
                 Console.WriteLine("Median PM2.5 Read for dates " + startDate + " - " + endDate + ": " + median);
             }
             
+        }
+
+        public async Task GetMinMeasurePerYearQuerySet(string startDate, string endDate)
+        {
+            Container pmContainer = await this.CreateContainerAsync(this.hourly_pm_container, Data.idPath, hourly_pm_container_azure);
+
+            Query q = new Query();
+
+            PrintParams(new string[2] { startDate, endDate });
+            QueryDefinition queryDefinition = new QueryDefinition(q.minSampleMeasurementByYear)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate);
+            var result = await this.RunQueryWithParams(pmContainer, queryDefinition);
+            var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result[0].ToString());
+            double min = jsonResult["minMeasure"];
+
+            Console.WriteLine("Minimum PM2.5 Read for dates " + startDate + " - " + endDate + ": " + min);
+        }
+
+        public async Task GetMaxMeasurePerYearQuerySet(string startDate, string endDate)
+        {
+            Container pmContainer = await this.CreateContainerAsync(this.hourly_pm_container, Data.idPath, hourly_pm_container_azure);
+
+            Query q = new Query();
+
+            PrintParams(new string[2] { startDate, endDate });
+            QueryDefinition queryDefinition = new QueryDefinition(q.maxSampleMeasurementByYear)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate);
+            var result = await this.RunQueryWithParams(pmContainer, queryDefinition);
+            var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result[0].ToString());
+            double max = jsonResult["maxMeasure"];
+
+            Console.WriteLine("Maximum PM2.5 Read for dates " + startDate + " - " + endDate + ": " + max);
         }
 
         private double FindHighestValue(List<dynamic> result)
