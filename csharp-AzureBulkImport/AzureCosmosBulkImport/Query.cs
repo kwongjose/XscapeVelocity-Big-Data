@@ -95,10 +95,19 @@ public class Query
         FROM c
         WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate)";
 
+    public string minSampleMeasurementByYearRHDP { get; } = @"
+        SELECT MIN(c.sampleMeasurement) as minMeasure
+        FROM c
+        WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)";
     public string maxSampleMeasurementByYear { get; } = @"
         SELECT MAX(c.sampleMeasurement) as maxMeasure
         FROM c
         WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate)";
+
+    public string maxSampleMeasurementByYearRHDP { get; } = @"
+        SELECT MAX(c.sampleMeasurement) as maxMeasure
+        FROM c
+        WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)";
 
     public string averageSampleMeasurementByDate { get; } = @"
         SELECT AVG(c.sampleMeasurement) as average
