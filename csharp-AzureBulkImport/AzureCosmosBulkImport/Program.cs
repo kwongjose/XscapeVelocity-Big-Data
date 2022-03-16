@@ -411,6 +411,15 @@ namespace AzureBulkImport
             //await this.GetMedianPerYearQuerySet("2019-01-01", "2019-12-31");
             //await this.GetMedianPerYearQuerySet("2020-01-01", "2020-12-31");
 
+            //await this.GetMinMeasurePerYearQuerySet("2017-01-01", "2017-12-31");
+            //await this.GetMinMeasurePerYearQuerySet("2018-01-01", "2018-12-31");
+            //await this.GetMinMeasurePerYearQuerySet("2019-01-01", "2019-12-31");
+            //await this.GetMinMeasurePerYearQuerySet("2020-01-01", "2020-12-31");
+
+            //await this.GetMaxMeasurePerYearQuerySet("2017-01-01", "2017-12-31");
+            //await this.GetMaxMeasurePerYearQuerySet("2018-01-01", "2018-12-31");
+            //await this.GetMaxMeasurePerYearQuerySet("2019-01-01", "2019-12-31");
+            //await this.GetMaxMeasurePerYearQuerySet("2020-01-01", "2020-12-31");
 
             // await this.DeleteDatabaseAndCleanupAsync();
 
@@ -562,11 +571,11 @@ namespace AzureBulkImport
 
         private void PrintParams(string[] parameters)
         {
-            Console.WriteLine("Parameters for Query");
+/*            Console.WriteLine("Parameters for Query");
             foreach (string param in parameters)
             {
                 Console.WriteLine(param);
-            }
+            }*/
         }
     }
 }
