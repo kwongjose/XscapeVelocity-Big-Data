@@ -77,10 +77,10 @@ public class Query
     public string minSampleMeasurementByYear { get; } = @"
         SELECT MIN(c.sampleMeasurement) as minMeasure
         FROM c
-        WHERE c.dateGMT BETWEEN @startDate AND @endDate";
+        WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate)";
 
     public string maxSampleMeasurementByYear { get; } = @"
         SELECT MAX(c.sampleMeasurement) as maxMeasure
         FROM c
-        WHERE c.dateGMT BETWEEN @startDate AND @endDate";
+        WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate)";
 }
