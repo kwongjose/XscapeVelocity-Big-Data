@@ -571,11 +571,11 @@ namespace AzureBulkImport
 
         private void PrintParams(string[] parameters)
         {
-/*            Console.WriteLine("Parameters for Query");
+            Console.WriteLine("Parameters for Query");
             foreach (string param in parameters)
             {
                 Console.WriteLine(param);
-            }*/
+            }
         }
     }
 }
