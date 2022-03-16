@@ -178,13 +178,16 @@ def merge_data(
     return out_data
 
 
-def write_json(out_fh: TextIO, out_data: Dict[str, Any]):
+def write_json(out_fh: TextIO, out_data: Dict[str, Any], needs_separator: bool):
     """Write json object to output"""
     for site_date in out_data.values():
         for row in site_date.values():
             row["id"] = str(uuid.uuid4())
+            if needs_separator:
+                out_fh.write(",")
+            else:
+                needs_separator = True
             json.dump(row, out_fh, indent=4)
-            out_fh.write(",")
 
 
 def normalize_data(pm_reader: DictReader, rh_reader: DictReader, out_fh: TextIO):
@@ -193,6 +196,7 @@ def normalize_data(pm_reader: DictReader, rh_reader: DictReader, out_fh: TextIO)
     rh_data = []
     out_data = {}
     out_fh.write("[")
+    needs_separator = False
     while True:
         read_data_block(pm_reader, pm_data)
         if not pm_data:
@@ -208,7 +212,8 @@ def normalize_data(pm_reader: DictReader, rh_reader: DictReader, out_fh: TextIO)
         out_data = merge_data(pm_data, rh_data)
         if not out_data:
             break
-        write_json(out_fh, out_data)
+        write_json(out_fh, out_data, needs_separator)
+        needs_separator = True
     out_fh.write("]")
 
 
