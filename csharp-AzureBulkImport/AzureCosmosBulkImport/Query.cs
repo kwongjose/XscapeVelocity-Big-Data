@@ -59,19 +59,35 @@ public class Query
 
     public string totalEntryCount { get; } = "SELECT COUNT(c.id) FROM c";
 
+    public string totalEntryCountRHDP { get; } = "SELECT COUNT(c.id) FROM c WHERE c.parameterName = @typeOfMeasure";
+
     public string totalEntryCountByDate { get; } = @"
         SELECT COUNT(c.id) 
         FROM c 
         WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate)";
+
+    public string totalEntryCountByDateRHDP { get; } = @"
+        SELECT COUNT(c.id)
+        FROM c
+        WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)";
     public string getMedianUpperValue { get; } = @"
         SELECT TOP @rowNum c.sampleMeasurement as median
         FROM c
         WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate)
         ORDER BY c.sampleMeasurement ASC";
+    public string getMedianUpperValueRHDP { get; } = @"
+        SELECT TOP @rowNum c.sampleMeasurement as median
+        FROM c
+        WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)
+        ORDER BY c.sampleMeasurement ASC";
 
     public string getMedianLowerValue { get; } = @"SELECT TOP @rowNum c.sampleMeasurement as median
         FROM c
         WHERE c.sampleMeasurement >= 0.0 AND  (c.dateGMT BETWEEN @startDate AND @endDate)
+        ORDER BY c.sampleMeasurement DESC";
+    public string getMedianLowerValueRHDP { get; } = @"SELECT TOP @rowNum c.sampleMeasurement as median
+        FROM c
+        WHERE c.sampleMeasurement >= 0.0 AND  (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)
         ORDER BY c.sampleMeasurement DESC";
 
     public string minSampleMeasurementByYear { get; } = @"
@@ -89,6 +105,10 @@ public class Query
         FROM c
         WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate)";
 
+    public string averageSampleMeasurementByDateRHDP { get; } = @"
+        SELECT AVG(c.sampleMeasurement) as average
+        FROM c
+        WHERE c.sampleMeasurement >= 0.0 AND(c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)";
     public string countOccurencesOfMeasurementLessThan { get; } = @"
         SELECT COUNT(c.sampleMeasurement) as numOfOccurences
         FROM c
