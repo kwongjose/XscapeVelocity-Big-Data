@@ -206,81 +206,6 @@ namespace AzureBulkImport
             }            
         }
 
-        private async Task QueryForAverageMeasurementsAsync()
-        {
-
-            var sqlQueryText = "SELECT AVG(d.sampleMeasurement) FROM d";
-
-            Console.WriteLine("Running query: {0}\n", sqlQueryText);
-
-            QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
-            FeedIterator<dynamic> queryResultSetIterator = this.container.GetItemQueryIterator<dynamic>(queryDefinition);
-
-            List<dynamic> allData = new List<dynamic>();
-            Console.WriteLine("\tQuery Iterator {0}\n", queryResultSetIterator);
-
-            while (queryResultSetIterator.HasMoreResults)
-            {
-                FeedResponse<dynamic> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-                Console.WriteLine("\tResults {0}\n", currentResultSet);
-                foreach (dynamic data in currentResultSet)
-                {
-                    allData.Add(data);
-                    Console.WriteLine("\tRead {0}\n", data);
-                }
-            }
-        }
-
-        private async Task QueryForMaxMeasurementsAsync(Container container)
-        {
-
-            // var sqlQueryText = "SELECT DateTimePart('year', c.dateGMT) , AVG(c.sampleMeasurement) FROM c GROUP BY DateTimePart('year', c.dateGMT)";
-            var sqlQueryText = "SELECT MIN(d.sampleMeasurement) FROM d";
-            Console.WriteLine("Running query: {0}\n", sqlQueryText);
-
-            QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
-            FeedIterator<dynamic> queryResultSetIterator = this.container.GetItemQueryIterator<dynamic>(queryDefinition);
-
-            List<dynamic> allData = new List<dynamic>();
-            Console.WriteLine("\tQuery Iterator {0}\n", queryResultSetIterator);
-
-            while (queryResultSetIterator.HasMoreResults)
-            {
-                FeedResponse<dynamic> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-                Console.WriteLine("\tResults {0}\n", currentResultSet);
-                foreach (dynamic data in currentResultSet)
-                {
-                    allData.Add(data);
-                    Console.WriteLine("\tRead {0}\n", data);
-                }
-            }
-        }
-
-        private async Task QueryForMinMeasurementsAsync()
-        {
-
-            var sqlQueryText = "SELECT MIN(d.sampleMeasurement) FROM d";
-
-            Console.WriteLine("Running query: {0}\n", sqlQueryText);
-
-            QueryDefinition queryDefinition = new QueryDefinition(sqlQueryText);
-            FeedIterator<dynamic> queryResultSetIterator = this.container.GetItemQueryIterator<dynamic>(queryDefinition);
-
-            List<dynamic> allData = new List<dynamic>();
-            Console.WriteLine("\tQuery Iterator {0}\n", queryResultSetIterator);
-
-            while (queryResultSetIterator.HasMoreResults)
-            {
-                FeedResponse<dynamic> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-                Console.WriteLine("\tResults {0}\n", currentResultSet);
-                foreach (dynamic data in currentResultSet)
-                {
-                    allData.Add(data);
-                    Console.WriteLine("\tRead {0}\n", data);
-                }
-            }
-        }
-
         private async Task<List<dynamic>> RunQuery(Container c, string sqlQueryText)
         {
 
@@ -312,16 +237,15 @@ namespace AzureBulkImport
             FeedIterator<dynamic> queryResultSetIterator = c.GetItemQueryIterator<dynamic>(queryDefinition);
 
             List<dynamic> allData = new List<dynamic>();
-            //Console.WriteLine("\tQuery Iterator {0}\n", queryResultSetIterator);
+
 
             while (queryResultSetIterator.HasMoreResults)
             {
                 FeedResponse<dynamic> currentResultSet = await queryResultSetIterator.ReadNextAsync();
-                //Console.WriteLine("\tResults {0}\n", currentResultSet);
+
                 foreach (dynamic data in currentResultSet)
                 {
                     allData.Add(data);
-                    //Console.WriteLine("\tRead {0}\n", data);
                 }
             }
             return allData;
@@ -405,6 +329,10 @@ namespace AzureBulkImport
                 i++;
             }
 
+            //Pre-Post Covid Median Measurements
+            await this.GetDifferenceSinceCovid();
+
+
             //Use these for testing, comment and uncomment to only run certain years at a time
             //await this.GetMedianPerYearQuerySet("2017-01-01", "2017-12-31");
             //await this.GetMedianPerYearQuerySet("2018-01-01", "2018-12-31");
@@ -421,17 +349,20 @@ namespace AzureBulkImport
             //await this.GetMaxMeasurePerYearQuerySet("2019-01-01", "2019-12-31");
             //await this.GetMaxMeasurePerYearQuerySet("2020-01-01", "2020-12-31");
 
+
+
             // await this.DeleteDatabaseAndCleanupAsync();
 
             // this.LoadCSV();
         }
 
-        public async Task GetMedianPerYearQuerySet(string startDate, string endDate)
+        public async Task<double> GetMedianPerYearQuerySet(string startDate, string endDate)
         {
 
             Container pmContainer = await this.CreateContainerAsync(this.hourly_pm_container, Data.idPath, hourly_pm_container_azure);
 
             Query q = new Query();
+            double median = 0.0;
 
             //string the queries together
             //first, get the # of "rows"/objects for the TOP command)
@@ -475,7 +406,7 @@ namespace AzureBulkImport
                 Console.WriteLine("median1: " + md1);
                 Console.WriteLine("median2: " + md2);
 
-                double median = (md1 + md2) / 2;
+                median = (md1 + md2) / 2;
                 Console.WriteLine("Median PM2.5 Read for dates " +startDate + " - " + endDate + ": " + median);
 
             } else // odd # of objects
@@ -496,11 +427,11 @@ namespace AzureBulkImport
 
                 //finds the highest value of this subset of data. MAX of ASC data
                 //because we only need the one, no additional arithmetic is needed.
-                double median = FindHighestValue(result);
+                median = FindHighestValue(result);
 
                 Console.WriteLine("Median PM2.5 Read for dates " + startDate + " - " + endDate + ": " + median);
             }
-            
+            return median;
         }
 
         public async Task GetMinMeasurePerYearQuerySet(string startDate, string endDate)
@@ -537,6 +468,41 @@ namespace AzureBulkImport
             Console.WriteLine("Maximum PM2.5 Read for dates " + startDate + " - " + endDate + ": " + max);
         }
 
+        public async Task<double> GetAverageMeasurePerYearQuerySet(string startDate, string endDate)
+        {
+            Container pmContainer = await this.CreateContainerAsync(this.hourly_pm_container, Data.idPath, hourly_pm_container_azure);
+
+            Query q = new Query();
+
+            PrintParams(new string[2] { startDate, endDate });
+            QueryDefinition queryDefinition = new QueryDefinition(q.averageSampleMeasurementByDate)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate);
+            var result = await this.RunQueryWithParams(pmContainer, queryDefinition);
+            var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result[0].ToString());
+            double mean = jsonResult["average"];
+
+            Console.WriteLine("Average/Mean PM2.5 Read for dates " + startDate + " - " + endDate + ": " + mean);
+
+            return mean;
+        }
+
+        public async Task GetDifferenceSinceCovid()
+        {
+            double preCovidMedian = await this.GetMedianPerYearQuerySet("2017-01-01", "2020-03-01");
+            double postCovidMedian = await this.GetMedianPerYearQuerySet("2020-03-01", "2020-12-31");
+            double diffMedian = preCovidMedian - postCovidMedian;
+            Console.WriteLine("Pre-Covid Median PM2.5 Read is " + preCovidMedian);
+            Console.WriteLine("Post-Covid Median PM2.5 Read is " + postCovidMedian);
+            Console.WriteLine("The difference in PM2.5 Read data is " + diffMedian);
+
+            double preCovidMean = await this.GetAverageMeasurePerYearQuerySet("2017-01-01", "2020-03-01");
+            double postCovidMean = await this.GetAverageMeasurePerYearQuerySet("2020-03-01", "2020-12-31");
+            double diffMean = preCovidMean - postCovidMean;
+            Console.WriteLine("Pre-Covid Mean PM2.5 Read is " + preCovidMean);
+            Console.WriteLine("Post-Covid Mean PM2.5 Read is " + postCovidMean);
+            Console.WriteLine("The difference in PM2.5 Read data is " + diffMean);
+        }
         private double FindHighestValue(List<dynamic> result)
         {
             double highest_measure = Double.MinValue;

@@ -83,4 +83,9 @@ public class Query
         SELECT MAX(c.sampleMeasurement) as maxMeasure
         FROM c
         WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate)";
+
+    public string averageSampleMeasurementByDate { get; } = @"
+        SELECT AVG(c.sampleMeasurement) as average
+        FROM c
+        WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate)";
 }
