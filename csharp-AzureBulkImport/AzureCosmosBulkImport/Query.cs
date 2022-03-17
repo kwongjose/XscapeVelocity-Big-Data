@@ -70,6 +70,16 @@ public class Query
         SELECT COUNT(c.id)
         FROM c
         WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)";
+
+    public string totalEntryCountByDateAndSiteCodePM { get; } = @"
+        SELECT COUNT(c.id) as count
+        FROM c
+        WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.siteCode = @siteCode)";
+
+    public string totalEntryCountByDateAndSiteCodeRHDP { get; } = @"
+        SELECT COUNT(c.id) as count
+        FROM c
+        WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure) AND (c.siteCode = @siteCode)";
     public string getMedianUpperValue { get; } = @"
         SELECT TOP @rowNum c.sampleMeasurement as median
         FROM c
@@ -118,6 +128,17 @@ public class Query
         SELECT AVG(c.sampleMeasurement) as average
         FROM c
         WHERE c.sampleMeasurement >= 0.0 AND(c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)";
+
+    public string averageSampleMeasurementByDateAndSiteCode { get; } = @"
+        SELECT AVG(c.sampleMeasurement) as average
+        FROM c
+        WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.siteCode = @siteCode)";
+
+    public string averageSampleMeasurementByDateAndSiteCodeRHDP { get; } = @"
+        SELECT AVG(c.sampleMeasurement) as average
+        FROM c
+        WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.siteCode = @siteCode) AND (c.parameterName = @typeOfMeasure)";
+
     public string countOccurencesOfMeasurementLessThan { get; } = @"
         SELECT COUNT(c.sampleMeasurement) as numOfOccurences
         FROM c
@@ -127,4 +148,24 @@ public class Query
         SELECT COUNT(c.sampleMeasurement) as numOfOccurences
         FROM c
         WHERE c.sampleMeasurement < @measure AND (c.parameterName = @typeOfMeasure)";
+
+    public string countOccurencesOfMeasurementLessThanByDatePM { get; } = @"
+        SELECT COUNT(c.sampleMeasurement) as numOfOccurences
+        FROM c
+        WHERE c.sampleMeasurement < @measure AND (c.dateGMT BETWEEN @startDate AND @endDate)";
+
+    public string countOccurencesOfMeasurementLessThanByDateRHDP { get; } = @"
+        SELECT COUNT(c.sampleMeasurement) as numOfOccurences
+        FROM c
+        WHERE c.sampleMeasurement < @measure AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)";
+
+    public string countOccurencesOfMeasurementGreaterThanByDatePM { get; } = @"
+        SELECT COUNT(c.sampleMeasurement) as numOfOccurences
+        FROM c
+        WHERE c.sampleMeasurement > @measure AND (c.dateGMT BETWEEN @startDate AND @endDate)";
+
+    public string countOccurencesOfMeasurementGreaterThanByDateRHDP { get; } = @"
+        SELECT COUNT(c.sampleMeasurement) as numOfOccurences
+        FROM c
+        WHERE c.sampleMeasurement > @measure AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)";
 }
