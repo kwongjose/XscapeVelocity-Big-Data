@@ -233,7 +233,7 @@ namespace AzureBulkImport
 
         private async Task<List<dynamic>> RunQueryWithParams(Container c, QueryDefinition queryDefinition)
         {
-            //Console.WriteLine("Running query: {0}\n", queryDefinition.QueryText);
+            Console.WriteLine("Running query: {0}\n", queryDefinition.QueryText);
 
             FeedIterator<dynamic> queryResultSetIterator = c.GetItemQueryIterator<dynamic>(queryDefinition);
 
@@ -297,16 +297,16 @@ namespace AzureBulkImport
             /********************/
 
             //Median, Min, and Max Measurements Per Year
-            for (int i = 0; i < constant.monthlyDateArray.Length; i++)
+/*            for (int i = 0; i < constant.yearlyDateArray.Length; i++)
             {
                 // Get Median PM2.5 Data Per Year
-                await this.GetMedianPerYearQuerySet(constant.monthlyDateArray[i], constant.monthlyDateArray[i + 1]);
-                await this.GetMinMeasurePerYearQuerySet(constant.monthlyDateArray[i], constant.monthlyDateArray[i + 1]);
-                await this.GetMaxMeasurePerYearQuerySet(constant.monthlyDateArray[i], constant.monthlyDateArray[i + 1]);
+                await this.GetMedianPerYearQuerySet(constant.yearlyDateArray[i], constant.yearlyDateArray[i + 1]);
+                await this.GetMinMeasurePerYearQuerySet(constant.yearlyDateArray[i], constant.yearlyDateArray[i + 1]);
+                await this.GetMaxMeasurePerYearQuerySet(constant.yearlyDateArray[i], constant.yearlyDateArray[i + 1]);
                 //skip 1 because every other is an end date
                 i++;
             }
-
+*/
 
             //Pre-Post Covid Median Measurements
             //await this.GetDifferenceSinceCovid();
@@ -315,18 +315,33 @@ namespace AzureBulkImport
             //await this.GetNumOfInvalidMeasures();
 
             //Get Monthly Mean per SiteCode and Save to CSV
-            await this.GetMonthlyAvgBySiteCode(sites, constant.monthlyDateArray);
+            //await this.GetMonthlyAvgBySiteCode(sites, constant.monthlyDateArray);
 
             /********************/
             // Medium Queries
             /********************/
 
             //Find Outlier Information via IQR
-            //first, find Q1 and Q3
-            //then calculate for IQR
-            //then calculate upper bound = Q3 + (1.5 * IQR)
-            //then calculate your lower bound = Q1 – (1.5 * IQR)
-            //finally, query for any sample measurements above upper bound and below lower bound
+            for (int i = 0; i < constant.yearlyDateArray.Length; i++)
+            {
+                double[] lowerQuartileArray = await this.GetLowerQuartileByDateQuerySet(constant.yearlyDateArray[i], constant.yearlyDateArray[i + 1]);
+                double[] upperQuartileArray = await this.GetUpperQuartileByDateQuerySet(constant.yearlyDateArray[i], constant.yearlyDateArray[i + 1]);
+
+                //hardcoding this because its a school assignment
+                double[] lowerBoundArray = new double[] { };
+                double[] upperBoundArray = new double[] { };
+                for (int j = 0; j < lowerQuartileArray.Length; j++)
+                {
+                    double iqr = (upperQuartileArray[j] - lowerQuartileArray[j]) * 1.5;
+                    lowerBoundArray[j] = lowerQuartileArray[j] - iqr;
+                    upperBoundArray[j] = upperQuartileArray[j] - iqr;   
+
+                }
+
+                await this.GetOutliersByDateQuerySet(constant.yearlyDateArray[i], constant.yearlyDateArray[i + 1], lowerBoundArray, upperBoundArray);
+                //skip 1 because every other is an end date
+                i++;
+            }
 
 
             /********************/
@@ -347,14 +362,97 @@ namespace AzureBulkImport
             return medianArray;
         }
 
-        public async Task<double> GetLowerQuartileByDateQuerySet(string startDate, string endDate)
+        public async Task<double[]> GetLowerQuartileByDateQuerySet(string startDate, string endDate)
         {
-            return 0.0;
+            double lqPM = await this.GetLowerQuartileByDatePM(startDate, endDate);
+            double lqRH = await this.GetLowerQuartileByDateRHDP(startDate, endDate, "Relative Humidity");
+            double lqDP = await this.GetLowerQuartileByDateRHDP(startDate, endDate, "Dew Point");
+           
+
+            double[] lqArray = new double[] { lqPM, lqRH, lqDP };
+            return lqArray;
         }
 
-        public async Task<double> GetUpperQuartileByDateQuerySet(string startDate, string endDate)
+        public async Task<double[]> GetUpperQuartileByDateQuerySet(string startDate, string endDate)
         {
-            return 0.0;
+            double uqPM = await this.GetUpperQuartileByDatePM(startDate, endDate);
+            double uqRH = await this.GetUpperQuartileByDateRHDP(startDate, endDate, "Relative Humidity");
+            double uqDP = await this.GetUpperQuartileByDateRHDP(startDate, endDate, "Dew Point");
+
+            double[] uqArray = new double[] { uqPM, uqRH, uqDP };
+            return uqArray;
+        }
+
+        public async Task GetOutliersByDateQuerySet(string startDate, string endDate, double[] lowerBoundArray, double[] upperBoundArray)
+        {
+            await this.GetOutliersByDatePM(startDate, endDate, lowerBoundArray[0], upperBoundArray[0]);
+            await this.GetOutliersByDateRHDP(startDate, endDate, lowerBoundArray[1], upperBoundArray[1], "Relative Humidity");
+            await this.GetOutliersByDateRHDP(startDate, endDate, lowerBoundArray[2], upperBoundArray[2], "Dew Point");
+        }
+
+        private async Task GetOutliersByDatePM(string startDate, string endDate, double lb, double ub)
+        {
+            Container pmContainer = await this.CreateContainerAsync(this.hourly_pm_container, Data.idPath, hourly_pm_container_azure);
+
+            Query q = new Query();
+
+            Utilities.PrintParams(new string[] { startDate, endDate, ""+lb});
+            QueryDefinition queryDefinition = new QueryDefinition(q.countOccurencesOfMeasurementLessThanByDatePM)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate)
+                    .WithParameter("@measure", lb);
+
+            var result = await this.RunQueryWithParams(pmContainer, queryDefinition);
+            var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result[0].ToString());
+            double occ = jsonResult["numOfOccurences"];
+
+            Console.WriteLine("Number of Lower Bound Outlier PM2.5 Reads: " + occ);
+
+            Utilities.PrintParams(new string[] { startDate, endDate, "" + ub });
+            queryDefinition = new QueryDefinition(q.countOccurencesOfMeasurementGreaterThanByDatePM)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate)
+                    .WithParameter("@measure", ub);
+
+             result = await this.RunQueryWithParams(pmContainer, queryDefinition);
+             jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result[0].ToString());
+             occ = jsonResult["numOfOccurences"];
+
+            Console.WriteLine("Number of Upper Bound Outlier PM2.5 Reads: " + occ);
+
+        }
+
+        private async Task GetOutliersByDateRHDP(string startDate, string endDate, double lb, double ub, string typeOfMeasure)
+        {
+            Container rhContainer = await this.CreateContainerAsync(this.hourly_rh_dewpoint_container, Data.idPath, this.hourly_rh_dewpoint_container_azure);
+
+            Query q = new Query();
+
+            Utilities.PrintParams(new string[] { startDate, endDate, "" + lb, typeOfMeasure });
+            QueryDefinition queryDefinition = new QueryDefinition(q.countOccurencesOfMeasurementLessThanByDateRHDP)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate)
+                    .WithParameter("@measure", lb)
+                    .WithParameter("@typeOfMeasure", typeOfMeasure);
+
+            var result = await this.RunQueryWithParams(rhContainer, queryDefinition);
+            var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result[0].ToString());
+            double occ = jsonResult["numOfOccurences"];
+
+            Console.WriteLine("Number of Lower Bound Outlier "+typeOfMeasure+" Reads: " + occ);
+
+            Utilities.PrintParams(new string[] { startDate, endDate, "" + ub, typeOfMeasure });
+            queryDefinition = new QueryDefinition(q.countOccurencesOfMeasurementGreaterThanByDateRHDP)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate)
+                    .WithParameter("@measure", ub)
+                    .WithParameter("@typeOfMeasure", typeOfMeasure);
+
+            result = await this.RunQueryWithParams(rhContainer, queryDefinition);
+            jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result[0].ToString());
+            occ = jsonResult["numOfOccurences"];
+
+            Console.WriteLine("Number of Upper Bound Outlier "+typeOfMeasure+" Reads: " + occ);
         }
 
         private async Task<double> GetLowerQuartileByDatePM(string startDate, string endDate)
@@ -372,15 +470,16 @@ namespace AzureBulkImport
                     .WithParameter("@endDate", endDate);
             var entryMidpoint = (await this.RunQueryWithParams(pmContainer, queryDefinition));
             var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(entryMidpoint[0].ToString());
-
             //then, find midpoints and calculate
-            if ((jsonResult["$1"]/4) % 2 == 0) //even # of objects
+            double quarterJsonResult = (jsonResult["$1"] * 1.0) / 4;
+            int intJsonResult = (int)quarterJsonResult;
+            if (intJsonResult % 2 == 0) //even # of objects
             {
 
                 Console.WriteLine("************* EVEN # OBJECTS *********\n");
 
-                double lq1 = (((1 / 4) * jsonResult["$1"]) + 1);
-                double lq2 = ((3 / 4) * (jsonResult["$1"] + 1)); //the middle objects, for reasons i dont understand this rounds down, so correcting....
+                double lq1 = (intJsonResult + 1);
+                double lq2 = (intJsonResult);
 
                 Utilities.PrintParams(new string[3] { startDate, endDate, "" + lq1 });
                 queryDefinition = new QueryDefinition(q.getMedianUpperValue)
@@ -391,7 +490,7 @@ namespace AzureBulkImport
 
 
                 Utilities.PrintParams(new string[3] { startDate, endDate, "" + lq2 });
-                queryDefinition = new QueryDefinition(q.getMedianLowerValue)
+                queryDefinition = new QueryDefinition(q.getMedianUpperValue)
                     .WithParameter("@rowNum", lq2)
                     .WithParameter("@startDate", startDate)
                     .WithParameter("@endDate", endDate);
@@ -400,8 +499,7 @@ namespace AzureBulkImport
                 //get the two midpoints
                 //finds the highest value of this subset of data. MAX of ASC data
                 double md1 = FindHighestValue(result1);
-                //finds the lowest value of this subset of data. MIN of DESC data
-                double md2 = FindLowestValue(result2);
+                double md2 = FindHighestValue(result2);
 
                 Console.WriteLine("median1: " + md1);
                 Console.WriteLine("median2: " + md2);
@@ -415,7 +513,7 @@ namespace AzureBulkImport
 
                 Console.WriteLine("********* ODD # OBJECTS ************\n");
 
-                var lq1 = ((1 / 4) * jsonResult["$1"] + 1); //the middle object, for reasons i dont understand it rounds down
+                int lq1 = intJsonResult ; //the middle object, casting int will truncate + round down
 
                 //simplified since we dont need to average 2 numbers
                 Utilities.PrintParams(new string[3] { startDate, endDate, "" + lq1 });
@@ -450,18 +548,20 @@ namespace AzureBulkImport
                     .WithParameter("@endDate", endDate);
             var entryMidpoint = (await this.RunQueryWithParams(pmContainer, queryDefinition));
             var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(entryMidpoint[0].ToString());
-
+            double quarterJsonResult = ((jsonResult["$1"] * 1.0) / 4) * 3;
+            //Console.WriteLine(quarterJsonResult);
+            int rowNum = (int)jsonResult["$1"] - (int)quarterJsonResult;
             //then, find midpoints and calculate
-            if ((jsonResult["$1"] /4) % 2 == 0) //even # of objects
+            if (rowNum % 2 == 0) //even # of objects
             {
 
                 Console.WriteLine("************* EVEN # OBJECTS *********\n");
                 
-                double uq1 = (((3 / 4) * jsonResult["$1"]) + 1);
-                double uq2 = ((1 / 4) * (jsonResult["$1"] + 1)); //the middle objects, for reasons i dont understand this rounds down, so correcting....
+                double uq1 = (rowNum);
+                double uq2 = (rowNum + 1); //the middle objects, for reasons i dont understand this rounds down, so correcting....
 
                 Utilities.PrintParams(new string[3] { startDate, endDate, "" + uq1 });
-                queryDefinition = new QueryDefinition(q.getMedianUpperValue)
+                queryDefinition = new QueryDefinition(q.getMedianLowerValue)
                     .WithParameter("@rowNum", uq1)
                     .WithParameter("@startDate", startDate)
                     .WithParameter("@endDate", endDate);
@@ -477,7 +577,7 @@ namespace AzureBulkImport
 
                 //get the two midpoints
                 //finds the highest value of this subset of data. MAX of ASC data
-                double md1 = FindHighestValue(result1);
+                double md1 = FindLowestValue(result1);
                 //finds the lowest value of this subset of data. MIN of DESC data
                 double md2 = FindLowestValue(result2);
 
@@ -493,22 +593,22 @@ namespace AzureBulkImport
 
                 Console.WriteLine("********* ODD # OBJECTS ************\n");
 
-                var uq1 = (jsonResult["$1"] + 1) / 4; //the middle object, for reasons i dont understand it rounds down
+                var uq1 = rowNum; //the middle object, for reasons i dont understand it rounds down
 
                 //simplified since we dont need to average 2 numbers
                 Utilities.PrintParams(new string[3] { startDate, endDate, "" + uq1 });
-                queryDefinition = new QueryDefinition(q.getMedianUpperValue)
+                queryDefinition = new QueryDefinition(q.getMedianLowerValue)
                     .WithParameter("@rowNum", uq1)
                     .WithParameter("@startDate", startDate)
                     .WithParameter("@endDate", endDate);
                 var result = await this.RunQueryWithParams(pmContainer, queryDefinition);
 
 
-                //finds the highest value of this subset of data. MAX of ASC data
+                //finds the lowest value of this subset of data. MIN of DESC data
                 //because we only need the one, no additional arithmetic is needed.
-                uq = FindHighestValue(result);
+                uq = FindLowestValue(result);
 
-                Console.WriteLine("Upper Quartile PM2.5 Read for dates " + startDate + " - " + endDate + ": " + lq);
+                Console.WriteLine("Upper Quartile PM2.5 Read for dates " + startDate + " - " + endDate + ": " + uq);
             }
             return uq;
         }
@@ -529,15 +629,17 @@ namespace AzureBulkImport
                     .WithParameter("@typeOfMeasure", typeOfMeasure);
             var entryMidpoint = (await this.RunQueryWithParams(rhContainer, queryDefinition));
             var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(entryMidpoint[0].ToString());
+            double quarterJsonResult = (jsonResult["$1"] * 1.0) / 4;
+            int intJsonResult = (int)quarterJsonResult;
 
             //then, find midpoints and calculate
-            if ((jsonResult["$1"] / 4) % 2 == 0) //even # of objects
+            if (intJsonResult % 2 == 0) //even # of objects
             {
 
                 Console.WriteLine("************* EVEN # OBJECTS *********\n");
 
-                double lq1 = (((1 / 4) * jsonResult["$1"]) + 1);
-                double lq2 = ((3 / 4) * (jsonResult["$1"] + 1)); //the middle objects, for reasons i dont understand this rounds down, so correcting....
+                double lq1 = (intJsonResult + 1);
+                double lq2 = intJsonResult;
 
                 Utilities.PrintParams(new string[4] { startDate, endDate, "" + lq1, typeOfMeasure });
                 queryDefinition = new QueryDefinition(q.getMedianUpperValueRHDP)
@@ -549,7 +651,7 @@ namespace AzureBulkImport
 
 
                 Utilities.PrintParams(new string[4] { startDate, endDate, "" + lq2, typeOfMeasure });
-                queryDefinition = new QueryDefinition(q.getMedianLowerValueRHDP)
+                queryDefinition = new QueryDefinition(q.getMedianUpperValueRHDP)
                     .WithParameter("@rowNum", lq2)
                     .WithParameter("@startDate", startDate)
                     .WithParameter("@endDate", endDate)
@@ -560,13 +662,13 @@ namespace AzureBulkImport
                 //finds the highest value of this subset of data. MAX of ASC data
                 double md1 = FindHighestValue(result1);
                 //finds the lowest value of this subset of data. MIN of DESC data
-                double md2 = FindLowestValue(result2);
+                double md2 = FindHighestValue(result2);
 
                 Console.WriteLine("median1: " + md1);
                 Console.WriteLine("median2: " + md2);
 
                 lq = (md1 + md2) / 2;
-                Console.WriteLine("Lower Quartile PM2.5 Read for dates " + startDate + " - " + endDate + ": " + lq);
+                Console.WriteLine("Lower Quartile "+ typeOfMeasure + " Read for dates " + startDate + " - " + endDate + ": " + lq);
 
             }
             else // odd # of objects
@@ -574,7 +676,7 @@ namespace AzureBulkImport
 
                 Console.WriteLine("********* ODD # OBJECTS ************\n");
 
-                var lq1 = ((1 / 4) * jsonResult["$1"] + 1); //the middle object, for reasons i dont understand it rounds down
+                var lq1 = intJsonResult; //the middle object, for reasons i dont understand it rounds down
 
                 //simplified since we dont need to average 2 numbers
                 Utilities.PrintParams(new string[4] { startDate, endDate, "" + lq1, typeOfMeasure });
@@ -590,7 +692,7 @@ namespace AzureBulkImport
                 //because we only need the one, no additional arithmetic is needed.
                 lq = FindHighestValue(result);
 
-                Console.WriteLine("Lower Quartile PM2.5 Read for dates " + startDate + " - " + endDate + ": " + lq);
+                Console.WriteLine("Lower Quartile "+ typeOfMeasure + " Read for dates " + startDate + " - " + endDate + ": " + lq);
             }
             return lq;
         }
@@ -606,24 +708,25 @@ namespace AzureBulkImport
             //string the queries together
             //first, get the # of "rows"/objects for the TOP command)
             Utilities.PrintParams(new string[3] { startDate, endDate, typeOfMeasure });
-            QueryDefinition queryDefinition = new QueryDefinition(q.totalEntryCountByDate)
+            QueryDefinition queryDefinition = new QueryDefinition(q.totalEntryCountByDateRHDP)
                     .WithParameter("@startDate", startDate)
                     .WithParameter("@endDate", endDate)
                     .WithParameter("@typeOfMeasure", typeOfMeasure);
             var entryMidpoint = (await this.RunQueryWithParams(rhContainer, queryDefinition));
             var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(entryMidpoint[0].ToString());
-
+            double quarterJsonResult = ((jsonResult["$1"] * 1.0) / 4) * 3;
+            int rowNum = (int)jsonResult["$1"] - (int)quarterJsonResult;
             //then, find midpoints and calculate
-            if ((jsonResult["$1"] / 4) % 2 == 0) //even # of objects
+            if (rowNum % 2 == 0) //even # of objects
             {
 
                 Console.WriteLine("************* EVEN # OBJECTS *********\n");
 
-                double uq1 = (((3 / 4) * jsonResult["$1"]) + 1);
-                double uq2 = ((1 / 4) * (jsonResult["$1"] + 1)); //the middle objects, for reasons i dont understand this rounds down, so correcting....
+                double uq1 = rowNum;
+                double uq2 = rowNum + 1; //the middle objects, for reasons i dont understand this rounds down, so correcting....
 
                 Utilities.PrintParams(new string[4] { startDate, endDate, "" + uq1, typeOfMeasure });
-                queryDefinition = new QueryDefinition(q.getMedianUpperValueRHDP)
+                queryDefinition = new QueryDefinition(q.getMedianLowerValueRHDP)
                     .WithParameter("@rowNum", uq1)
                     .WithParameter("@startDate", startDate)
                     .WithParameter("@endDate", endDate)
@@ -641,7 +744,7 @@ namespace AzureBulkImport
 
                 //get the two midpoints
                 //finds the highest value of this subset of data. MAX of ASC data
-                double md1 = FindHighestValue(result1);
+                double md1 = FindLowestValue(result1);
                 //finds the lowest value of this subset of data. MIN of DESC data
                 double md2 = FindLowestValue(result2);
 
@@ -649,7 +752,7 @@ namespace AzureBulkImport
                 Console.WriteLine("median2: " + md2);
 
                 uq = (md1 + md2) / 2;
-                Console.WriteLine("Upper Quartile "+typeOfMeasure+".5 Read for dates " + startDate + " - " + endDate + ": " + uq);
+                Console.WriteLine("Upper Quartile "+typeOfMeasure+" Read for dates " + startDate + " - " + endDate + ": " + uq);
 
             }
             else // odd # of objects
@@ -657,11 +760,11 @@ namespace AzureBulkImport
 
                 Console.WriteLine("********* ODD # OBJECTS ************\n");
 
-                var uq1 = (jsonResult["$1"] + 1) / 4; //the middle object, for reasons i dont understand it rounds down
+                var uq1 = rowNum; //the middle object, for reasons i dont understand it rounds down
 
                 //simplified since we dont need to average 2 numbers
                 Utilities.PrintParams(new string[4] { startDate, endDate, "" + uq1, typeOfMeasure });
-                queryDefinition = new QueryDefinition(q.getMedianUpperValueRHDP)
+                queryDefinition = new QueryDefinition(q.getMedianLowerValueRHDP)
                     .WithParameter("@rowNum", uq1)
                     .WithParameter("@startDate", startDate)
                     .WithParameter("@endDate", endDate)
@@ -671,9 +774,9 @@ namespace AzureBulkImport
 
                 //finds the highest value of this subset of data. MAX of ASC data
                 //because we only need the one, no additional arithmetic is needed.
-                uq = FindHighestValue(result);
+                uq = FindLowestValue(result);
 
-                Console.WriteLine("Upper Quartile PM2.5 Read for dates " + startDate + " - " + endDate + ": " + uq);
+                Console.WriteLine("Upper Quartile "+typeOfMeasure+" Read for dates " + startDate + " - " + endDate + ": " + uq);
             }
             return uq;
         }

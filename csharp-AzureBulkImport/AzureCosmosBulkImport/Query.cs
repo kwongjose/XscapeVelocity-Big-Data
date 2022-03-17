@@ -148,4 +148,24 @@ public class Query
         SELECT COUNT(c.sampleMeasurement) as numOfOccurences
         FROM c
         WHERE c.sampleMeasurement < @measure AND (c.parameterName = @typeOfMeasure)";
+
+    public string countOccurencesOfMeasurementLessThanByDatePM { get; } = @"
+        SELECT COUNT(c.sampleMeasurement) as numOfOccurences
+        FROM c
+        WHERE c.sampleMeasurement < @measure AND (c.dateGMT BETWEEN @startDate AND @endDate)";
+
+    public string countOccurencesOfMeasurementLessThanByDateRHDP { get; } = @"
+        SELECT COUNT(c.sampleMeasurement) as numOfOccurences
+        FROM c
+        WHERE c.sampleMeasurement < @measure AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)";
+
+    public string countOccurencesOfMeasurementGreaterThanByDatePM { get; } = @"
+        SELECT COUNT(c.sampleMeasurement) as numOfOccurences
+        FROM c
+        WHERE c.sampleMeasurement > @measure AND (c.dateGMT BETWEEN @startDate AND @endDate)";
+
+    public string countOccurencesOfMeasurementGreaterThanByDateRHDP { get; } = @"
+        SELECT COUNT(c.sampleMeasurement) as numOfOccurences
+        FROM c
+        WHERE c.sampleMeasurement > @measure AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)";
 }
