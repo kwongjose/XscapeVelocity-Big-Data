@@ -273,7 +273,7 @@ namespace AzureBulkImport
             //ONLY USE JSON OR CSV
 
             // Adding all rh dewpoint data JSON
-           //  await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2017_json");
+            //  await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2017_json");
             //await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2018_json");
             //await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2019_json");
             //await this.AddItemsToContainerAsyncJSON(this.hourly_rh_dewpoint_container, "hourly_rh_dp_data_2020_json");
@@ -305,7 +305,7 @@ namespace AzureBulkImport
             //await this.QueryForMinMeasurementsAsync();
 
             //Easy Queries
-            Query q = new Query();
+            //Query q = new Query();
             //await this.RunQuery(this.hourly_rh_dewpoint_container_azure, q.MinMaxBySite);
             //await this.RunQuery(q.AnnualPMAverage);
             //await this.RunQuery(q.PrePostCovidDifference);
@@ -318,22 +318,22 @@ namespace AzureBulkImport
 
 
             //Use these for batch processing yearly metrics
-            string[] dateArray = new string[8] { "2017-01-01", "2017-12-31", "2018-01-01", "2018-12-31", "2019-01-01", "2019-12-31", "2020-01-01", "2020-12-31" };
-            for (int i = 0; i < dateArray.Length; i++)
-            {
-                // Get Median PM2.5 Data Per Year
-                await this.GetMedianPerYearQuerySet(dateArray[i], dateArray[i + 1]);
-                await this.GetMinMeasurePerYearQuerySet(dateArray[i], dateArray[i + 1]);
-                await this.GetMaxMeasurePerYearQuerySet(dateArray[i], dateArray[i + 1]);
-                //skip 1 because every other is an end date
-                i++;
-            }
+            //string[] dateArray = new string[8] { "2017-01-01", "2017-12-31", "2018-01-01", "2018-12-31", "2019-01-01", "2019-12-31", "2020-01-01", "2020-12-31" };
+            //for (int i = 0; i < dateArray.Length; i++)
+            //{
+            //    // Get Median PM2.5 Data Per Year
+            //    await this.GetMedianPerYearQuerySet(dateArray[i], dateArray[i + 1]);
+            //    await this.GetMinMeasurePerYearQuerySet(dateArray[i], dateArray[i + 1]);
+            //    await this.GetMaxMeasurePerYearQuerySet(dateArray[i], dateArray[i + 1]);
+            //    //skip 1 because every other is an end date
+            //    i++;
+            //}
 
-            //Pre-Post Covid Median Measurements
-            await this.GetDifferenceSinceCovid();
+            ////Pre-Post Covid Median Measurements
+            //await this.GetDifferenceSinceCovid();
 
-            //Invalid Measurements
-            await this.GetNumOfInvalidMeasures();
+            ////Invalid Measurements
+            //await this.GetNumOfInvalidMeasures();
 
 
             //Use these for testing, comment and uncomment to only run certain years at a time
@@ -351,6 +351,8 @@ namespace AzureBulkImport
             //await this.GetMaxMeasurePerYearQuerySet("2018-01-01", "2018-12-31");
             //await this.GetMaxMeasurePerYearQuerySet("2019-01-01", "2019-12-31");
             //await this.GetMaxMeasurePerYearQuerySet("2020-01-01", "2020-12-31");
+
+            await this.FindPMRHCorrelation("2017-01-01", "2020-12-31");
 
 
 
@@ -789,6 +791,57 @@ namespace AzureBulkImport
             }//end of loop
 
             return lowest_measure;
+        }
+
+        public async Task<double> FindPMRHCorrelation(string startDate, string endDate)
+        {
+            double pm_avg = await this.GetAvgMeasurePM(startDate, endDate);
+            double rh_avg = await this.GetAvgMeasureRHDP(startDate, endDate, "Relative Humidity");
+            double pm_stdev = await this.GetStDevPM(pm_avg, startDate, endDate);
+            double rh_stdev = await this.GetStDevRHDP(rh_avg, startDate, endDate, "Relative Humidity");
+
+            return pm_avg;
+        }
+
+        public async Task<double> GetStDevPM(double pm_avg, string startDate, string endDate)
+        {
+            Container pmContainer = await this.CreateContainerAsync(this.hourly_pm_container, Data.idPath, hourly_pm_container_azure);
+
+            Query q = new Query();
+
+            PrintParams(new string[2] { startDate, endDate });
+            QueryDefinition queryDefinition = new QueryDefinition(q.stDevPM)
+                    .WithParameter("@averageMeasurement", pm_avg)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate);
+            var result = await this.RunQueryWithParams(pmContainer, queryDefinition);
+            var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result[0].ToString());
+            double stDev = jsonResult["stDev"];
+
+            Console.WriteLine("Standard deviation PM2.5 Read for dates " + startDate + " - " + endDate + ": " + stDev);
+
+            return stDev;
+        }
+
+        public async Task<double> GetStDevRHDP(double avg, string startDate, string endDate, string typeOfMeasure)
+        {
+            Container rhContainer = await this.CreateContainerAsync(this.hourly_rh_dewpoint_container, Data.idPath, this.hourly_rh_dewpoint_container_azure);
+
+            Query q = new Query();
+
+            PrintParams(new string[2] { startDate, endDate });
+            QueryDefinition queryDefinition = new QueryDefinition(q.stDevRHDP)
+                    .WithParameter("@averageMeasurement", avg)
+                    .WithParameter("@startDate", startDate)
+                    .WithParameter("@endDate", endDate)
+                    .WithParameter("@typeOfMeasure", typeOfMeasure);
+            var result = await this.RunQueryWithParams(rhContainer, queryDefinition);
+            var jsonResult = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(result[0].ToString());
+            double stDev = jsonResult["stDev"];
+
+            Console.WriteLine("Standard deviation "+typeOfMeasure+" Read for dates " + startDate + " - " + endDate + ": " + stDev);
+
+            return stDev;
         }
 
         private void PrintParams(string[] parameters)
