@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "AzureCosmosBulkImport": {
+      "commandName": "Project",
+      "commandLineArgs": "../../../data.json"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+	"stateCode": "string",
+	"countyCode": "string",
+	"siteNum": "string",
+	"poc":  1,
+	"latitude": 33.2342,
+	"longitude": 32.2342,
+	"datum": "string",
+	"parameterName": "string",
+	"dateLocal": "string",
+	"timeLocal": "string",
+	"dateGMT": "string",
+	"timeGMT": "string",
+	"sampleMeasurement": 3.1,
+	"unitOfMeasure": "string",
+	"mdl": 3.1,
+	"uncertainty":  "string",
+	"qualifier": "string",
+	"dateLastChange": "string"
+}

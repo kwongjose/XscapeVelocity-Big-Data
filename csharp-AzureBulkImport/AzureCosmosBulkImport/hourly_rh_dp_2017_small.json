@@ -1,0 +1,254 @@
+[{
+    "poc": "1",
+    "datum": "NAD83",
+    "parameterName": "Relative Humidity ",
+    "dateLocal": "2019-03-07",
+    "timeLocal": "00:00",
+    "dateGMT": "2019-03-07",
+    "timeGMT": "06:00",
+    "sampleMeasurement": "26.2",
+    "unitOfMeasure": "Percent relative humidity",
+    "mdl": "0.1",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2020-03-04",
+    "siteCode": "01-053-1000",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-87.5435",
+            "31.0921"
+        ]
+    },
+    "id": "95e0784e-61cd-4cbb-8dff-79697d5755f5"
+},{
+    "poc": "1",
+    "datum": "NAD83",
+    "parameterName": "Relative Humidity ",
+    "dateLocal": "2019-03-07",
+    "timeLocal": "01:00",
+    "dateGMT": "2019-03-07",
+    "timeGMT": "07:00",
+    "sampleMeasurement": "10.3",
+    "unitOfMeasure": "Percent relative humidity",
+    "mdl": "0.1",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2020-03-04",
+    "siteCode": "01-053-1000",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-87.5435",
+            "31.0921"
+        ]
+    },
+    "id": "9109b607-27d1-4807-b14c-b652c3c37096"
+},{
+    "poc": "1",
+    "datum": "NAD83",
+    "parameterName": "Relative Humidity ",
+    "dateLocal": "2019-03-07",
+    "timeLocal": "02:00",
+    "dateGMT": "2019-03-07",
+    "timeGMT": "08:00",
+    "sampleMeasurement": "0.7",
+    "unitOfMeasure": "Percent relative humidity",
+    "mdl": "0.1",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2020-03-04",
+    "siteCode": "01-053-1000",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-87.5435",
+            "31.0921"
+        ]
+    },
+    "id": "e41887a3-7b00-4e7a-b269-90b9d0662b83"
+},{
+    "poc": "1",
+    "datum": "NAD83",
+    "parameterName": "Relative Humidity ",
+    "dateLocal": "2019-03-07",
+    "timeLocal": "03:00",
+    "dateGMT": "2019-03-07",
+    "timeGMT": "09:00",
+    "sampleMeasurement": "31.8",
+    "unitOfMeasure": "Percent relative humidity",
+    "mdl": "0.1",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2020-03-04",
+    "siteCode": "01-053-1000",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-87.5435",
+            "31.0921"
+        ]
+    },
+    "id": "4bdac57d-12f8-46ed-b9c6-b26ecc860dd9"
+},{
+    "poc": "1",
+    "datum": "NAD83",
+    "parameterName": "Relative Humidity ",
+    "dateLocal": "2019-03-07",
+    "timeLocal": "04:00",
+    "dateGMT": "2019-03-07",
+    "timeGMT": "10:00",
+    "sampleMeasurement": "71.8",
+    "unitOfMeasure": "Percent relative humidity",
+    "mdl": "0.1",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2020-03-04",
+    "siteCode": "01-053-1000",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-87.5435",
+            "31.0921"
+        ]
+    },
+    "id": "753d4be1-ab5f-4cf3-9962-fe414be6fe50"
+},{
+    "poc": "1",
+    "datum": "NAD83",
+    "parameterName": "Relative Humidity ",
+    "dateLocal": "2019-03-07",
+    "timeLocal": "05:00",
+    "dateGMT": "2019-03-07",
+    "timeGMT": "11:00",
+    "sampleMeasurement": "34.6",
+    "unitOfMeasure": "Percent relative humidity",
+    "mdl": "0.1",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2020-03-04",
+    "siteCode": "01-053-1000",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-87.5435",
+            "31.0921"
+        ]
+    },
+    "id": "f8ea5a3e-b1d3-4953-8971-fa65a46fa065"
+},{
+    "poc": "1",
+    "datum": "NAD83",
+    "parameterName": "Relative Humidity ",
+    "dateLocal": "2019-03-07",
+    "timeLocal": "06:00",
+    "dateGMT": "2019-03-07",
+    "timeGMT": "12:00",
+    "sampleMeasurement": "12.3",
+    "unitOfMeasure": "Percent relative humidity",
+    "mdl": "0.1",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2020-03-04",
+    "siteCode": "01-053-1000",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-87.5435",
+            "31.0921"
+        ]
+    },
+    "id": "97444f24-81e2-4b63-91b1-7d240e5af4b4"
+},{
+    "poc": "1",
+    "datum": "NAD83",
+    "parameterName": "Relative Humidity ",
+    "dateLocal": "2019-03-07",
+    "timeLocal": "07:00",
+    "dateGMT": "2019-03-07",
+    "timeGMT": "13:00",
+    "sampleMeasurement": "0.7",
+    "unitOfMeasure": "Percent relative humidity",
+    "mdl": "0.1",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2020-03-04",
+    "siteCode": "01-053-1000",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-87.5435",
+            "31.0921"
+        ]
+    },
+    "id": "bcf1a834-5b5b-4569-9cf4-b91f299ae65f"
+},{
+    "poc": "1",
+    "datum": "NAD83",
+    "parameterName": "Relative Humidity ",
+    "dateLocal": "2019-03-07",
+    "timeLocal": "08:00",
+    "dateGMT": "2019-03-07",
+    "timeGMT": "14:00",
+    "sampleMeasurement": "0.7",
+    "unitOfMeasure": "Percent relative humidity",
+    "mdl": "0.1",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2020-03-04",
+    "siteCode": "01-053-1000",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-87.5435",
+            "31.0921"
+        ]
+    },
+    "id": "b848f8c4-b2f8-4531-b7e0-d7a8bdea9335"
+},{
+    "poc": "1",
+    "datum": "NAD83",
+    "parameterName": "Relative Humidity ",
+    "dateLocal": "2019-03-07",
+    "timeLocal": "09:00",
+    "dateGMT": "2019-03-07",
+    "timeGMT": "15:00",
+    "sampleMeasurement": "0.8",
+    "unitOfMeasure": "Percent relative humidity",
+    "mdl": "0.1",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2020-03-04",
+    "siteCode": "01-053-1000",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-87.5435",
+            "31.0921"
+        ]
+    },
+    "id": "e949a325-9059-4130-a84d-a433ae3334de"
+},{
+    "poc": "1",
+    "datum": "NAD83",
+    "parameterName": "Relative Humidity ",
+    "dateLocal": "2019-03-07",
+    "timeLocal": "10:00",
+    "dateGMT": "2019-03-07",
+    "timeGMT": "16:00",
+    "sampleMeasurement": "0.8",
+    "unitOfMeasure": "Percent relative humidity",
+    "mdl": "0.1",
+    "uncertainty": "",
+    "qualifier": "",
+    "dateLastChange": "2020-03-04",
+    "siteCode": "01-053-1000",
+    "location": {
+        "type": "Point",
+        "coordinates": [
+            "-87.5435",
+            "31.0921"
+        ]
+    },
+    "id": "083319d4-e07b-45ff-aca6-af443d0601c2"
+}]
