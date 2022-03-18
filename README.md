@@ -1,2 +1,8 @@
 # XscapeVelocity-Big-Data
-John Caspers 
+
+# Contributors
+- Andrew Bros
+- Emily Clark
+- John Caspers
+- Joseph Kwong
+- Michael Whitney
