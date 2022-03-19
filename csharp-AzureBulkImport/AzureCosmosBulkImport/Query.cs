@@ -168,4 +168,28 @@ public class Query
         SELECT COUNT(c.sampleMeasurement) as numOfOccurences
         FROM c
         WHERE c.sampleMeasurement > @measure AND (c.dateGMT BETWEEN @startDate AND @endDate) AND (c.parameterName = @typeOfMeasure)";
+
+    public string stDevPM { get; } = @"
+        SELECT SQRT(c.sumAvgDiffSquared / c.adjCount) as stDev
+        FROM (
+            SELECT SUM(c.avgDiffSqared) as sumAvgDiffSquared, COUNT(c.avgDiffSqared)-1 as adjCount
+            FROM (
+                SELECT SQUARE(c.sampleMeasurement - @averageMeasurement) as avgDiffSqared
+                FROM c
+                WHERE c.sampleMeasurement >= 0.0 AND (c.dateGMT BETWEEN @startDate AND @endDate)
+            ) as c
+        ) as c";
+
+    public string stDevRHDP { get; } = @"
+        SELECT SQRT(c.sumAvgDiffSquared / c.adjCount) as stDev
+        FROM (
+            SELECT SUM(c.avgDiffSqared) as sumAvgDiffSquared, COUNT(c.avgDiffSqared)-1 as adjCount
+            FROM (
+                SELECT SQUARE(c.sampleMeasurement - @averageMeasurement) as avgDiffSqared
+                FROM c
+                WHERE c.sampleMeasurement >= 0.0 
+                AND (c.dateGMT BETWEEN @startDate AND @endDate)
+                AND c.parameterName = @typeOfMeasure
+            ) as c
+        ) as c";
 }
