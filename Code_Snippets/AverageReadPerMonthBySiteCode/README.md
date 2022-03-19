@@ -1,4 +1,4 @@
-# Figure <TODO> Finding Average Measurement Per Month (Line Graph)
+# Figure 2, 3 Finding Average Measurement Per Month
 
 First we used a list of all possible site codes and verified if the site code had an entry before attempting to measure averages.
     

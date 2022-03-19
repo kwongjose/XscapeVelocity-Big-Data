@@ -1,4 +1,4 @@
-# Figure <TODO> Finding Minimum, Maximum, and Median Measurement (Table)
+# Table 2: Finding Minimum, Maximum, and Median Measurement
 
 First we used a list of all possible dates and iterated through the queries for Median, Minimum, and Maximum, logically organized into distinct functions.
     

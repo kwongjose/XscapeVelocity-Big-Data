@@ -1,4 +1,4 @@
-# Figure <TODO> Finding the Difference in Measurement Before and After COVID-19 (Table)
+# Table 3 Finding the Difference in Measurement Before and After COVID-19
 
 First we determined which dates to use and iterated through the queries for Median and Average for both PM2.5, Relative Humidity, and Dew Point.
     
