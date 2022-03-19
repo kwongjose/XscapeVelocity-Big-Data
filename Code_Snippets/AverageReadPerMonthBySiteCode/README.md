@@ -1,3 +1,5 @@
+# Figure <TODO> Finding Average Measurement Per Month (Line Graph)
+
 First we used a list of all possible site codes and verified if the site code had an entry before attempting to measure averages.
     
 *  These are the code and query snippets within `SiteCodeHasEntries.cs`
